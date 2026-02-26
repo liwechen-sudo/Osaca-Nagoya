@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>京阪名親子遊：全能導航版</title>
+    <title>京阪名親子遊：全能導航版 V4</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -13,7 +13,7 @@
             --text: #1c1c1e;
             --gray: #8e8e93;
             --accent: #34c759;
-            --warning: #ff9500;
+            --danger: #ff3b30;
         }
 
         body {
@@ -34,23 +34,27 @@
         .card { background: var(--card-bg); margin: 12px; padding: 18px; border-radius: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         h3 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-left: 4px solid var(--primary); padding-left: 10px; }
 
-        /* 行程清單 */
         .schedule-list { text-align: left; padding: 0; list-style: none; }
         .schedule-item {
             padding: 12px; border-radius: 12px; margin-bottom: 8px; background: #f8f8fa;
             display: flex; align-items: flex-start; gap: 10px; cursor: pointer; border: 2px solid transparent; transition: 0.2s;
+            position: relative;
         }
         .schedule-item.active { border-color: var(--primary); background: #f0f7ff; }
         .schedule-item.custom { border-left: 4px solid var(--accent); }
         .schedule-time { font-size: 0.75rem; color: var(--primary); font-weight: bold; min-width: 45px; margin-top: 3px; }
-        .schedule-text { font-size: 0.95rem; font-weight: 600; flex: 1; }
+        .schedule-text { font-size: 0.95rem; font-weight: 600; flex: 1; padding-right: 25px; }
         .schedule-sub { font-size: 0.8rem; color: var(--gray); margin-top: 2px; font-weight: normal; }
 
-        /* 新增景點表單 */
+        /* 刪除按鈕 */
+        .del-item {
+            position: absolute; right: 10px; top: 12px; color: var(--danger);
+            font-size: 1.2rem; padding: 0 5px; cursor: pointer;
+        }
+
         .add-form { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
         .add-form input { width: 100%; margin-bottom: 8px; box-sizing: border-box; }
         
-        /* 地圖區域 */
         .map-container { width: 100%; height: 230px; margin-bottom: 15px; }
         iframe { width: 100%; height: 100%; border: none; border-radius: 14px; background: #eee; }
 
@@ -60,6 +64,8 @@
         button.small { padding: 6px 12px; font-size: 0.8rem; border-radius: 8px; }
         
         input { padding: 10px; border: 1px solid #ddd; border-radius: 10px; }
+        .packing-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f9f9f9; cursor: pointer; }
+        .checked { text-decoration: line-through; color: var(--gray); }
     </style>
 </head>
 <body>
@@ -77,18 +83,19 @@
     
     <ul id="scheduleList" class="schedule-list"></ul>
     
-    <button class="secondary small" style="width:100%; margin-top: 10px;" onclick="toggleAddForm()">＋自行增加自訂景點</button>
+    <button class="secondary small" style="width:100%; margin-top: 10px;" onclick="toggleAddForm()">＋新增自訂行程 / 餐廳</button>
     
     <div id="addForm" class="add-form">
+        <label style="font-size: 0.8rem; color: var(--gray);">預計時間</label>
         <input id="newTime" type="time" value="12:00">
-        <input id="newTitle" placeholder="景點名稱 (例如: 敘敘苑燒肉)">
-        <input id="newLoc" placeholder="地圖搜尋關鍵字 (例如: 敘敘苑 梅田店)">
+        <label style="font-size: 0.8rem; color: var(--gray);">景點或餐廳名稱 (將直接連動地圖)</label>
+        <input id="newTitle" placeholder="例如：敘敘苑 梅田店">
         <button style="width:100%; background: var(--accent);" onclick="addCustomItem()">確定新增</button>
     </div>
 
     <div class="nav-btns">
-        <button class="secondary" onclick="changeDay(-1)">← 上一天</button>
-        <button onclick="changeDay(1)">下一天 →</button>
+        <button class="secondary" onclick="changeDay(-1)">←</button>
+        <button onclick="changeDay(1)">→</button>
     </div>
 </div>
 
@@ -116,17 +123,18 @@ const CONFIG = {
         { date: "3月11日", city: "大阪", items: [
             { time: "06:55", icon: "✈️", title: "虎航 IT284", sub: "高雄-關西 KIX", loc: "Kansai International Airport" },
             { time: "14:00", icon: "🏨", title: "大阪龍仕柏飯店", sub: "Hotel Hankyu RESPIRE", loc: "Hotel Hankyu RESPIRE OSAKA" },
-            { time: "16:00", icon: "🌅", title: "梅田空中庭園", sub: "5歲小孩也適合的夜景", loc: "Umeda Sky Building" }
+            { time: "16:00", icon: "🌅", title: "梅田空中庭園", sub: "5歲小孩也適合的夜景", loc: "Umeda Sky Building" },
+            { time: "17:30", icon: "🛍️", title: "大丸百貨梅田店", sub: "13F 寶可夢中心", loc: "Daimaru Umeda" }
         ]},
         { date: "3月12日", city: "大阪港", items: [
-            { time: "10:00", icon: "🐠", title: "海遊館", sub: "已買電子票。看鯨鯊、觸摸池", loc: "Osaka Kaiyukan Aquarium" },
-            { time: "12:30", icon: "🍱", title: "天保山午餐", sub: "推薦 2F 浪花美食橫丁", loc: "Tempozan Marketplace" },
-            { time: "17:00", icon: "🧸", title: "Yodobashi 5F", sub: "巨大玩具區", loc: "Links Umeda" }
+            { time: "10:00", icon: "🐠", title: "海遊館", sub: "看鯨鯊、觸摸池", loc: "Osaka Kaiyukan Aquarium" },
+            { time: "12:30", icon: "🍱", title: "天保山購物中心", sub: "午餐推薦：浪花美食橫丁", loc: "Tempozan Marketplace" },
+            { time: "17:00", icon: "🧸", title: "Yodobashi 5F", sub: "巨大玩具區與扭蛋", loc: "Links Umeda" }
         ]},
-        { date: "3月13日", city: "名古屋", items: [{ time: "10:00", icon: "🚄", title: "移動至名古屋", sub: "搭乘新幹線", loc: "Nagoya Station" }]},
-        { date: "3月14日", city: "長久手市", items: [{ time: "10:00", icon: "🌳", title: "吉卜力公園", sub: "宮崎駿世界巡禮", loc: "Ghibli Park" }]},
-        { time: "10:00", date: "3月15日", city: "名古屋港", items: [{ time: "10:00", icon: "🚂", title: "磁浮鐵道館", sub: "火車迷天堂", loc: "SCMAGLEV and Railway Park" }]},
-        { date: "3月16日", city: "名古屋", items: [{ time: "09:30", icon: "🤖", title: "樂高樂園", sub: "最後衝刺回台", loc: "LEGOLAND Japan" }]}
+        { date: "3月13日", city: "名古屋", items: [{ time: "10:00", icon: "🚄", title: "名古屋移動日", sub: "搭乘新幹線", loc: "Nagoya Station" }]},
+        { date: "3月14日", city: "長久手市", items: [{ time: "10:00", icon: "🌳", title: "吉卜力公園", sub: "宮崎駿世界", loc: "Ghibli Park" }]},
+        { date: "3月15日", city: "名古屋港", items: [{ time: "10:00", icon: "🚂", title: "磁浮鐵道館", sub: "新幹線展覽", loc: "SCMAGLEV and Railway Park" }, { time: "15:00", icon: "🛍️", title: "大須商店街", sub: "美食小吃", loc: "Osu Shopping District" }]},
+        { date: "3月16日", city: "名古屋", items: [{ time: "09:30", icon: "🤖", title: "名古屋樂高樂園", sub: "最後衝刺", loc: "LEGOLAND Japan" }]}
     ]
 };
 
@@ -148,57 +156,69 @@ function updateUI() {
     document.getElementById("dayDisplay").innerText = `第 ${currentDay} 天`;
     document.getElementById("dateDisplay").innerText = dayData.date;
     
-    // 合併固定行程與自訂行程
     let dayCustom = customItems[currentDay] || [];
     let combinedItems = [...dayData.items, ...dayCustom].sort((a,b) => a.time.localeCompare(b.time));
 
     const listEl = document.getElementById("scheduleList");
-    listEl.innerHTML = combinedItems.map((item, index) => `
-        <li class="schedule-item ${index === 0 ? 'active' : ''} ${item.isCustom ? 'custom' : ''}" onclick="setMap('${item.loc}', this)">
+    listEl.innerHTML = combinedItems.map((item) => `
+        <li class="schedule-item ${item.isCustom ? 'custom' : ''}" onclick="setMap('${item.loc || item.title}', this)">
             <div class="schedule-time">${item.time}</div>
             <span class="schedule-icon">${item.icon || '📍'}</span>
             <div class="schedule-text">
                 <div>${item.title}</div>
                 ${item.sub ? `<div class="schedule-sub">${item.sub}</div>` : ''}
             </div>
+            ${item.isCustom ? `<span class="del-item" onclick="deleteCustomItem('${item.id}', event)">✕</span>` : ''}
         </li>
     `).join("");
 
-    if (combinedItems.length > 0) setMap(combinedItems[0].loc);
-    renderExpenses();
+    if (combinedItems.length > 0) setMap(combinedItems[0].loc || combinedItems[0].title);
 }
 
 // 查詢天氣
 function checkWeather() {
     const city = CONFIG.baseSchedule[currentDay - 1].city;
-    const url = `https://www.google.com/search?q=${encodeURIComponent(city + '天氣預報')}`;
-    window.open(url, '_blank');
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(city + '天氣預報')}`, '_blank');
 }
 
-// 自訂景點功能
+// 景點表單
 function toggleAddForm() {
     const form = document.getElementById("addForm");
     form.style.display = form.style.display === "block" ? "none" : "block";
 }
 
+// 新增景點 (現在景點名稱就是關鍵字)
 function addCustomItem() {
     const time = document.getElementById("newTime").value;
     const title = document.getElementById("newTitle").value;
-    const loc = document.getElementById("newLoc").value;
-    
-    if(!title || !loc) return alert("請填寫名稱與地點");
+    if(!title) return alert("請輸入名稱");
 
     if(!customItems[currentDay]) customItems[currentDay] = [];
-    customItems[currentDay].push({ time, title, loc, isCustom: true, icon: "⭐️" });
+    customItems[currentDay].push({ 
+        id: Date.now().toString(), // 唯一ID供刪除使用
+        time, 
+        title, 
+        isCustom: true, 
+        icon: "⭐️" 
+    });
     
     localStorage.setItem("customSchedule", JSON.stringify(customItems));
     document.getElementById("newTitle").value = "";
-    document.getElementById("newLoc").value = "";
     toggleAddForm();
     updateUI();
 }
 
-/* ===== 基礎功能 (地圖, 記帳, 行李) ===== */
+// 刪除自訂景點
+function deleteCustomItem(id, event) {
+    event.stopPropagation(); // 防止觸發地圖切換
+    if(!confirm("確定要刪除這個自訂行程嗎？")) return;
+    
+    customItems[currentDay] = customItems[currentDay].filter(item => item.id !== id);
+    localStorage.setItem("customSchedule", JSON.stringify(customItems));
+    updateUI();
+}
+
+/* ===== 基礎功能 ===== */
 function setMap(location, element) {
     const searchUrl = `https://maps.google.com/maps?q=${encodeURIComponent(location)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
     document.getElementById("mapFrame").src = searchUrl;
@@ -227,7 +247,7 @@ function addExpense() {
 function renderExpenses() {
     const listEl = document.getElementById("expenseList");
     const todayExpenses = expenses.filter(e => e.day === currentDay);
-    listEl.innerHTML = todayExpenses.length === 0 ? `<div style="color:#999;text-align:center;font-size:13px">尚無紀錄</div>` : 
+    listEl.innerHTML = todayExpenses.length === 0 ? `<div style="color:#999;text-align:center;font-size:13px">尚無花費紀錄</div>` : 
         todayExpenses.map(e => `
             <div class="expense-item">
                 <span>${e.name} (¥${e.amount})</span>
