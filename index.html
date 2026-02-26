@@ -1,200 +1,310 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>親子旅遊管理 App</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>京阪名親子遊助手</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #007aff;
+            --bg: #f2f2f7;
+            --card-bg: #ffffff;
+            --text: #1c1c1e;
+            --gray: #8e8e93;
+            --danger: #ff3b30;
+        }
 
-<style>
-body{
-  font-family:-apple-system;
-  margin:0;
-  background:#f2f2f7;
-  text-align:center;
-}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 30px;
+        }
 
-.header{
-  background:#007aff;
-  color:white;
-  padding:15px;
-  font-size:18px;
-}
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #007aff, #5856d6);
+            color: white;
+            padding: 25px 15px;
+            text-align: center;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
 
-.card{
-  background:white;
-  margin:10px;
-  padding:15px;
-  border-radius:16px;
-}
+        .header h1 { margin: 0; font-size: 22px; }
+        .header p { margin: 5px 0 0; opacity: 0.8; font-size: 14px; }
 
-button{
-  padding:8px 12px;
-  margin:5px;
-  border:none;
-  border-radius:12px;
-  background:#007aff;
-  color:white;
-}
+        /* Card Style */
+        .card {
+            background: var(--card-bg);
+            margin: 15px;
+            padding: 20px;
+            border-radius: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
 
-input{
-  padding:6px;
-  margin:5px;
-}
+        h3 { margin-top: 0; display: flex; align-items: center; gap: 8px; }
 
-iframe{
-  width:100%;
-  height:250px;
-  border:none;
-  border-radius:12px;
-}
-</style>
+        /* Schedule Section */
+        #dayTitle { color: var(--primary); font-size: 1.2rem; }
+        #schedule { font-weight: bold; margin: 10px 0; font-size: 1.1rem; min-height: 1.5em; }
+        
+        iframe {
+            width: 100%;
+            height: 200px;
+            border: none;
+            border-radius: 12px;
+            margin-top: 10px;
+            background: #eee;
+        }
+
+        .nav-btns { display: flex; justify-content: space-between; margin-top: 15px; }
+
+        /* Form Controls */
+        input {
+            width: calc(50% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 10px;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        button:active { opacity: 0.7; }
+        button.secondary { background: #e5e5ea; color: var(--text); }
+        button.delete { background: none; color: var(--danger); padding: 4px 8px; }
+
+        /* Expense List */
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f2f2f7;
+        }
+
+        /* Packing List */
+        .packing-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            cursor: pointer;
+        }
+        .packing-item input { width: auto; margin-right: 12px; }
+        .checked { text-decoration: line-through; color: var(--gray); }
+
+        canvas { margin-top: 20px; }
+    </style>
 </head>
-
 <body>
 
 <div class="header">
-今天是旅程第 <span id="tripDay">1</span> 天
+    <h1 id="dayDisplay">第 1 天</h1>
+    <p>2026 阪名親子冒險之旅</p>
 </div>
 
 <div class="card">
-<h3 id="dayTitle"></h3>
-<div id="schedule"></div>
-<iframe id="mapFrame"></iframe>
-<button onclick="prevDay()">←</button>
-<button onclick="nextDay()">→</button>
+    <h3 id="dayTitle">Day 1</h3>
+    <div id="schedule">載入中...</div>
+    <iframe id="mapFrame" src=""></iframe>
+    <div class="nav-btns">
+        <button class="secondary" onclick="changeDay(-1)">← 上一天</button>
+        <button onclick="changeDay(1)">下一天 →</button>
+    </div>
 </div>
 
 <div class="card">
-<h3>💰 記帳</h3>
-<input id="expenseName" placeholder="項目">
-<input id="expenseAmount" type="number" placeholder="金額">
-<button onclick="addExpense()">新增</button>
-<div id="expenseList"></div>
-<canvas id="expenseChart"></canvas>
+    <h3>💰 旅費記帳 (JPY 匯率: 0.21)</h3>
+    <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+        <input id="expenseName" placeholder="項目內容">
+        <input id="expenseAmount" type="number" placeholder="日幣金額(¥)">
+        <button style="width: 100%;" onclick="addExpense()">新增消費紀錄</button>
+    </div>
+    
+    <div id="expenseList" style="margin-top: 15px; font-size: 14px;"></div>
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+    <canvas id="expenseChart"></canvas>
 </div>
 
 <div class="card">
-<h3>🧳 行李清單</h3>
-<div id="packingList"></div>
+    <h3>🧳 必備物資確認</h3>
+    <div id="packingList"></div>
 </div>
 
 <script>
-/* ===== 行程資料（沿用之前版本） ===== */
+/* ===== 設定區：修改這裡即可更新行程 ===== */
+const CONFIG = {
+    tripStart: new Date("2026-03-11T08:00:00"),
+    tripDays: 6,
+    jpyRate: 0.21,
+    schedule: [
+        {title:"✈️ 台灣 → 大阪 (關西國際機場)", loc:"Kansai International Airport"},
+        {title:"🐠 海遊館 + 🎡 天保山大摩天輪", loc:"Osaka Kaiyukan Aquarium"},
+        {title:"🚄 大阪 → 名古屋 (移動日)", loc:"Nagoya Station"},
+        {title:"🌳 吉卜力公園 (宮崎駿世界)", loc:"Ghibli Park"},
+        {title:"🚂 磁浮鐵道館 + 🛍️ 大須商店街", loc:"SCMAGLEV and Railway Park"},
+        {title:"🤖 樂高樂園 → ✈️ 中部機場回台", loc:"LEGOLAND Japan"}
+    ],
+    packingItems: ["護照/機票確認", "日幣現金/信用卡", "小孩常備藥", "行動電源", "尿布/濕紙巾", "雨具/保暖外套"]
+};
 
-const tripStart = new Date("2026-03-11T08:00:00");
-const tripDays = 6;
-
-const scheduleData = [
-  {title:"✈️ 台灣 → 名古屋", location:"Chubu Centrair International Airport"},
-  {title:"樂高樂園", location:"LEGOLAND Japan"},
-  {title:"吉卜力公園", location:"Ghibli Park Aichi"},
-  {title:"名古屋城 + 榮商圈", location:"Nagoya Castle"},
-  {title:"新幹線 → 大阪", location:"Shin-Osaka Station"},
-  {title:"✈️ 關西機場回台灣", location:"Kansai International Airport"}
-];
-
-/* ===== 旅程天數 ===== */
-
-function calculateTripDay(){
-  const now = new Date();
-  const diff = now - tripStart;
-  const day = Math.floor(diff/(1000*60*60*24))+1;
-  if(day>0 && day<=tripDays){return day;}
-  return 1;
-}
-
-let currentDay = calculateTripDay();
-updateDay();
-
-function updateDay(){
-  document.getElementById("tripDay").innerText=currentDay;
-  document.getElementById("dayTitle").innerText="Day "+currentDay;
-  document.getElementById("schedule").innerText=scheduleData[currentDay-1].title;
-
-  document.getElementById("mapFrame").src =
-  "https://www.google.com/maps?q="+
-  encodeURIComponent(scheduleData[currentDay-1].location)+"&output=embed";
-}
-
-function prevDay(){if(currentDay>1){currentDay--;updateDay();}}
-function nextDay(){if(currentDay<tripDays){currentDay++;updateDay();}}
-
-/* ===== 記帳功能（每日分類） ===== */
-
+let currentDay = 1;
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+let packingStatus = JSON.parse(localStorage.getItem("packingStatus")) || {};
+let chartInstance = null;
 
-function addExpense(){
-  const name=document.getElementById("expenseName").value;
-  const amount=parseInt(document.getElementById("expenseAmount").value);
-  if(!name||!amount)return;
+/* ===== 核心功能 ===== */
 
-  expenses.push({day:currentDay,name,amount});
-  localStorage.setItem("expenses",JSON.stringify(expenses));
+window.onload = () => {
+    initDay();
+    updateUI();
+    renderPacking();
+};
 
-  document.getElementById("expenseName").value="";
-  document.getElementById("expenseAmount").value="";
-
-  renderExpenses();
+function initDay() {
+    const now = new Date();
+    // 簡單判斷當前日期是否在旅程期間
+    const diff = now - CONFIG.tripStart;
+    const day = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+    currentDay = (day > 0 && day <= CONFIG.tripDays) ? day : 1;
 }
 
-function renderExpenses(){
-  let html="";
-  let dailyTotals=Array(tripDays).fill(0);
+function updateUI() {
+    const data = CONFIG.schedule[currentDay - 1];
+    document.getElementById("dayDisplay").innerText = `第 ${currentDay} 天`;
+    document.getElementById("dayTitle").innerText = `Day ${currentDay} (${3+10+currentDay}月${10+currentDay}日)`; // 簡單計算日期顯示
+    document.getElementById("schedule").innerText = data.title;
+    
+    // 更新地圖
+    const mapQuery = encodeURIComponent(data.loc);
+    document.getElementById("mapFrame").src = `https://maps.google.com/maps?q=${mapQuery}&output=embed`;
 
-  expenses.forEach(e=>{
-    html+=`Day${e.day} ${e.name} - ${e.amount}元<br>`;
-    dailyTotals[e.day-1]+=e.amount;
-  });
-
-  document.getElementById("expenseList").innerHTML=html;
-  updateChart(dailyTotals);
+    renderExpenses();
 }
 
-let chart;
-function updateChart(data){
-  if(chart)chart.destroy();
-
-  chart=new Chart(document.getElementById("expenseChart"),{
-    type:"bar",
-    data:{
-      labels:["D1","D2","D3","D4","D5","D6"],
-      datasets:[{
-        label:"每日花費",
-        data:data
-      }]
+function changeDay(step) {
+    const newDay = currentDay + step;
+    if (newDay >= 1 && newDay <= CONFIG.tripDays) {
+        currentDay = newDay;
+        updateUI();
     }
-  });
 }
 
-renderExpenses();
+/* ===== 記帳功能 ===== */
+
+function addExpense() {
+    const name = document.getElementById("expenseName").value;
+    const amount = parseInt(document.getElementById("expenseAmount").value);
+    
+    if (!name || isNaN(amount)) return;
+
+    expenses.push({
+        id: Date.now(),
+        day: currentDay,
+        name,
+        amount
+    });
+
+    saveAndRenderExpenses();
+    document.getElementById("expenseName").value = "";
+    document.getElementById("expenseAmount").value = "";
+}
+
+function deleteExpense(id) {
+    expenses = expenses.filter(e => e.id !== id);
+    saveAndRenderExpenses();
+}
+
+function saveAndRenderExpenses() {
+    localStorage.setItem("expenses", JSON.stringify(expenses));
+    renderExpenses();
+}
+
+function renderExpenses() {
+    const listEl = document.getElementById("expenseList");
+    let html = "";
+    let totals = Array(CONFIG.tripDays).fill(0);
+
+    const todayExpenses = expenses.filter(e => e.day === currentDay);
+    
+    if (todayExpenses.length === 0) {
+        html = `<div style="color:#999; text-align:center;">今日尚無花費</div>`;
+    } else {
+        todayExpenses.forEach(e => {
+            const twd = Math.round(e.amount * CONFIG.jpyRate);
+            html += `
+                <div class="expense-item">
+                    <span>${e.name} (¥${e.amount.toLocaleString()})</span>
+                    <span>
+                        <b style="color:#2c3e50">≈ NT$${twd}</b>
+                        <button class="delete" onclick="deleteExpense(${e.id})">✕</button>
+                    </span>
+                </div>`;
+        });
+    }
+    
+    listEl.innerHTML = html;
+
+    expenses.forEach(e => {
+        if(e.day <= CONFIG.tripDays) totals[e.day-1] += e.amount;
+    });
+    updateChart(totals);
+}
+
+function updateChart(data) {
+    const ctx = document.getElementById("expenseChart").getContext("2d");
+    if (chartInstance) chartInstance.destroy();
+
+    chartInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: Array.from({length: CONFIG.tripDays}, (_, i) => `D${i+1}`),
+            datasets: [{
+                label: "每日支出 (JPY)",
+                data: data,
+                backgroundColor: "#007aff",
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
 
 /* ===== 行李清單 ===== */
 
-const packingItems=[
-  "護照","機票","小孩外套","充電器","行動電源","雨具"
-];
-
-let packingStatus=JSON.parse(localStorage.getItem("packingStatus"))||{};
-
-function renderPacking(){
-  let html="";
-  packingItems.forEach(item=>{
-    const checked=packingStatus[item]?"checked":"";
-    html+=`<label>
-    <input type="checkbox" onchange="toggleItem('${item}')" ${checked}>
-    ${item}
-    </label><br>`;
-  });
-  document.getElementById("packingList").innerHTML=html;
+function renderPacking() {
+    const container = document.getElementById("packingList");
+    container.innerHTML = CONFIG.packingItems.map(item => {
+        const isChecked = packingStatus[item];
+        return `
+            <div class="packing-item ${isChecked ? 'checked' : ''}" onclick="toggleItem('${item}')">
+                <input type="checkbox" ${isChecked ? 'checked' : ''}>
+                <span>${item}</span>
+            </div>
+        `;
+    }).join("");
 }
 
-function toggleItem(item){
-  packingStatus[item]=!packingStatus[item];
-  localStorage.setItem("packingStatus",JSON.stringify(packingStatus));
+function toggleItem(item) {
+    packingStatus[item] = !packingStatus[item];
+    localStorage.setItem("packingStatus", JSON.stringify(packingStatus));
+    renderPacking();
 }
-
-renderPacking();
 
 </script>
 
