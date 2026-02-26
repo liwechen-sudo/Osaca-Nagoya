@@ -4,101 +4,56 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>日本親子行程</title>
-
 <script src="https://cdn.tailwindcss.com"></script>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#F97316">
 
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="日本行程">
-
 <style>
-body { padding-bottom: 80px; }
+body { padding-bottom:80px; }
 .day-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: #F97316;
-  color: white;
-  padding: 10px 16px;
-  font-weight: bold;
+background:#F97316;
+color:white;
+padding:12px;
+text-align:center;
+font-weight:bold;
 }
 </style>
 </head>
 
 <body class="bg-gray-100">
 
-<header class="bg-orange-600 text-white p-5 text-center shadow-lg">
-<h1 class="text-xl font-bold">🇯🇵 日本親子行程</h1>
-<p class="text-sm opacity-80">2026/3/11 - 3/16</p>
-</header>
+<!-- ===== 頂部控制列 ===== -->
+<div class="bg-orange-600 text-white p-3 flex items-center justify-between">
 
-<!-- ===== 行程區 ===== -->
+<button onclick="prevDay()" class="px-3">◀</button>
 
-<section data-date="2026-03-11">
-<div class="day-header">D1 | 抵達大阪</div>
-<div class="p-4">
-<div class="bg-white p-3 rounded shadow border-l-4 border-orange-400" data-energy="20">
-<p class="font-bold">抵達飯店＋梅田午餐</p>
+<div class="text-center">
+<div id="dayIndicator" class="font-bold"></div>
+<div class="text-xs opacity-80">3/11 - 3/16</div>
 </div>
-</div>
-</section>
 
-<section data-date="2026-03-12">
-<div class="day-header">D2 | 海遊館</div>
-<div class="p-4 space-y-3">
-<div class="bg-white p-3 rounded shadow border-l-4 border-blue-400" data-energy="35">
-<p class="font-bold">海遊館</p>
-</div>
-<div class="bg-white p-3 rounded shadow border-l-4 border-gray-400" data-energy="10">
-<p class="font-bold">天保山摩天輪</p>
-</div>
-</div>
-</section>
+<button onclick="nextDay()" class="px-3">▶</button>
 
-<section data-date="2026-03-13">
-<div class="day-header">D3 | 轉場名古屋</div>
-<div class="p-4">
-<div class="bg-white p-3 rounded shadow border-l-4 border-green-400" data-energy="30">
-<p class="font-bold">新幹線移動</p>
 </div>
-</div>
-</section>
 
-<section data-date="2026-03-14">
-<div class="day-header">D4 | 吉卜力公園</div>
-<div class="p-4">
-<div class="bg-white p-3 rounded shadow border-l-4 border-yellow-500" data-energy="50">
-<p class="font-bold">吉卜力大倉庫</p>
+<!-- 快速切換 -->
+<div class="bg-white flex justify-center space-x-2 py-2 shadow">
+<button onclick="goToDay(0)">D1</button>
+<button onclick="goToDay(1)">D2</button>
+<button onclick="goToDay(2)">D3</button>
+<button onclick="goToDay(3)">D4</button>
+<button onclick="goToDay(4)">D5</button>
+<button onclick="goToDay(5)">D6</button>
 </div>
-</div>
-</section>
 
-<section data-date="2026-03-15">
-<div class="day-header">D5 | 鐵道館＋大須</div>
-<div class="p-4">
-<div class="bg-white p-3 rounded shadow border-l-4 border-purple-500" data-energy="40">
-<p class="font-bold">磁浮鐵道館</p>
-</div>
-</div>
-</section>
-
-<section data-date="2026-03-16">
-<div class="day-header">D6 | 樂高樂園 ➔ 回台</div>
-<div class="p-4">
-<div class="bg-white p-3 rounded shadow border-l-4 border-yellow-400" data-energy="45">
-<p class="font-bold">樂高樂園</p>
-</div>
-</div>
-</section>
+<!-- ===== 行程內容 ===== -->
+<div id="scheduleContainer"></div>
 
 <!-- ===== 體力條 ===== -->
-
-<div id="energyBarContainer" class="fixed bottom-0 left-0 w-full bg-white shadow-lg p-3">
+<div class="fixed bottom-0 left-0 w-full bg-white shadow-lg p-3">
 <div class="flex justify-between text-xs mb-1">
-<span>今日體力使用</span>
+<span>今日體力</span>
 <span id="energyPercent">0%</span>
 </div>
 <div class="w-full bg-gray-200 rounded-full h-3">
@@ -106,71 +61,140 @@ body { padding-bottom: 80px; }
 </div>
 </div>
 
-<!-- ===== Script 區 ===== -->
-
 <script>
 
-/* 自動顯示今天 */
-function showTodaySchedule() {
-const today = new Date().toISOString().split("T")[0];
-const sections = document.querySelectorAll("section");
-let foundToday = false;
+/* ===== 行程資料 ===== */
+const tripStart = new Date("2026-03-11");
 
-sections.forEach(section => {
-if(section.dataset.date === today){
-section.style.display = "block";
-foundToday = true;
-} else {
-section.style.display = "none";
+const scheduleData = [
+{
+title:"D1 抵達大阪",
+date:"2026-03-11",
+events:[
+{time:"12:30",name:"飯店＋梅田午餐",transport:"步行",energy:20,map:"https://maps.google.com?q=Hotel Hankyu Respire Osaka"}
+]
+},
+{
+title:"D2 海遊館",
+date:"2026-03-12",
+events:[
+{time:"10:30",name:"海遊館",transport:"地鐵中央線",energy:35,map:"https://maps.google.com?q=Osaka Kaiyukan"},
+{time:"15:00",name:"天保山摩天輪",transport:"步行5分鐘",energy:10,map:"https://maps.google.com?q=Tempozan Ferris Wheel"}
+]
+},
+{
+title:"D3 名古屋移動",
+date:"2026-03-13",
+events:[
+{time:"09:00",name:"新幹線前往名古屋",transport:"新幹線",energy:30,map:"https://maps.google.com?q=Nagoya Station"}
+]
+},
+{
+title:"D4 吉卜力公園",
+date:"2026-03-14",
+events:[
+{time:"10:00",name:"吉卜力大倉庫",transport:"地鐵東山線",energy:50,map:"https://maps.google.com?q=Ghibli Park"}
+]
+},
+{
+title:"D5 鐵道館",
+date:"2026-03-15",
+events:[
+{time:"11:00",name:"磁浮鐵道館",transport:"青波線",energy:40,map:"https://maps.google.com?q=SCMAGLEV Railway Park"}
+]
+},
+{
+title:"D6 樂高樂園",
+date:"2026-03-16",
+events:[
+{time:"10:00",name:"樂高樂園",transport:"青波線",energy:45,map:"https://maps.google.com?q=LEGOLAND Japan"}
+]
 }
+];
+
+let currentDayIndex = 0;
+
+/* ===== 初始化 ===== */
+function init(){
+const today = new Date();
+const diff = Math.floor((today - tripStart)/(1000*60*60*24));
+if(diff>=0 && diff<scheduleData.length){
+currentDayIndex = diff;
+}
+renderDay();
+}
+
+function renderDay(){
+const data = scheduleData[currentDayIndex];
+document.getElementById("dayIndicator").innerText =
+`今天是旅程第 ${currentDayIndex+1} 天`;
+
+let html = `<div class="p-4 space-y-4">`;
+
+let totalEnergy = 0;
+
+data.events.forEach(e=>{
+totalEnergy += e.energy;
+html += `
+<div class="bg-white p-4 rounded-xl shadow">
+<p class="font-bold">${e.time} ${e.name}</p>
+<p class="text-sm text-gray-500">🚄 ${e.transport}</p>
+<a href="${e.map}" target="_blank"
+class="mt-2 inline-block text-blue-600 text-sm">
+📍 打開地圖
+</a>
+</div>
+`;
 });
 
-/* 如果不是旅遊期間，全部顯示 */
-if(!foundToday){
-sections.forEach(section => section.style.display = "block");
+html += "</div>";
+document.getElementById("scheduleContainer").innerHTML = html;
+
+updateEnergy(totalEnergy);
 }
-}
 
-/* 計算體力 */
-function calculateEnergy() {
-let total = 0;
-const limit = 100;
-
-const visibleSection =
-document.querySelector("section[style*='block']") ||
-document.querySelector("section");
-
-const items = visibleSection.querySelectorAll("[data-energy]");
-items.forEach(item => total += parseInt(item.dataset.energy));
-
-let percent = Math.min((total/limit)*100,120);
-
-document.getElementById("energyBar").style.width = percent + "%";
-document.getElementById("energyPercent").innerText =
-Math.round(percent) + "%";
+function updateEnergy(total){
+let percent = Math.min(total,120);
+document.getElementById("energyBar").style.width = percent+"%";
+document.getElementById("energyPercent").innerText = percent+"%";
 
 const bar = document.getElementById("energyBar");
 
-if(percent >= 100){
-bar.className = "h-3 rounded-full bg-red-500";
-}
-else if(percent >= 80){
-bar.className = "h-3 rounded-full bg-orange-500";
-}
-else{
-bar.className = "h-3 rounded-full bg-green-500";
-}
+if(percent>=100) bar.className="h-3 rounded-full bg-red-500";
+else if(percent>=80) bar.className="h-3 rounded-full bg-orange-500";
+else bar.className="h-3 rounded-full bg-green-500";
 }
 
-window.addEventListener("load", function(){
-showTodaySchedule();
-calculateEnergy();
+/* ===== 切換功能 ===== */
+function nextDay(){
+if(currentDayIndex < scheduleData.length-1){
+currentDayIndex++;
+renderDay();
+}
+}
+function prevDay(){
+if(currentDayIndex > 0){
+currentDayIndex--;
+renderDay();
+}
+}
+function goToDay(i){
+currentDayIndex = i;
+renderDay();
+}
+
+/* ===== 手勢滑動 ===== */
+let startX = 0;
+document.addEventListener("touchstart", e=>{
+startX = e.touches[0].clientX;
+});
+document.addEventListener("touchend", e=>{
+let diff = e.changedTouches[0].clientX - startX;
+if(diff > 50) prevDay();
+if(diff < -50) nextDay();
 });
 
-/* Service Worker */
-if("serviceWorker" in navigator){
-navigator.serviceWorker.register("service-worker.js");
-}
+init();
 
 </script>
 
