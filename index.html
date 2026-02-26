@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本親子行程</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#F97316">
+
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="日本行程">
+
+<style>
+body { padding-bottom:80px; }
+.day-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #F97316;
+  color: white;
+  padding: 8px 16px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body class="bg-gray-100">
+
+<header class="bg-orange-600 text-white p-5 text-center shadow-lg">
+<h1 class="text-xl font-bold">🇯🇵 日本親子行程</h1>
+<p class="text-sm opacity-80">3/11 - 3/16</p>
+</header>
+
+<section>
+<div class="day-header">D4 | 吉卜力公園</div>
+
+<div class="p-4 space-y-4">
+<div class="bg-white p-4 rounded-xl shadow border-l-4 border-yellow-500" data-energy="50">
+<p class="font-bold text-lg">10:00 吉卜力大倉庫</p>
+<p class="text-sm text-gray-500">今日步行多，記得補水</p>
+</div>
+
+<div class="bg-white p-4 rounded-xl shadow border-l-4 border-blue-500" data-energy="20">
+<p class="font-bold text-lg">15:30 公園散步</p>
+</div>
+</div>
+</section>
+
+<!-- 體力條 -->
+<div id="energyBarContainer" class="fixed bottom-0 left-0 w-full bg-white shadow-lg p-3">
+<div class="flex justify-between text-xs mb-1">
+<span>今日體力使用</span>
+<span id="energyPercent">0%</span>
+</div>
+<div class="w-full bg-gray-200 rounded-full h-3">
+<div id="energyBar" class="h-3 rounded-full bg-green-500" style="width:0%"></div>
+</div>
+</div>
+
+<script>
+function calculateEnergy() {
+let total = 0;
+const limit = 100;
+const items = document.querySelectorAll("[data-energy]");
+items.forEach(item => total += parseInt(item.dataset.energy));
+let percent = Math.min((total/limit)*100,120);
+
+document.getElementById("energyBar").style.width = percent+"%";
+document.getElementById("energyPercent").innerText = Math.round(percent)+"%";
+
+const bar = document.getElementById("energyBar");
+if(percent>=100){bar.className="h-3 rounded-full bg-red-500";}
+else if(percent>=80){bar.className="h-3 rounded-full bg-orange-500";}
+else{bar.className="h-3 rounded-full bg-green-500";}
+}
+calculateEnergy();
+
+/* 通知 */
+function requestNotificationPermission(){
+if("Notification" in window){
+Notification.requestPermission();
+}}
+function scheduleReminder(title,timeString){
+const now=new Date();
+const reminderTime=new Date(timeString);
+const delay=reminderTime-now;
+if(delay>0){
+setTimeout(()=>{new Notification(title);},delay);
+}}
+requestNotificationPermission();
+
+/* 範例機場提醒 */
+scheduleReminder("✈ 記得 17:30 前抵達機場！","2026-03-16T17:30:00");
+
+/* 註冊 service worker */
+if("serviceWorker" in navigator){
+navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
+</body>
+</html>
