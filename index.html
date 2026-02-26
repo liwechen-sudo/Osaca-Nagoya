@@ -23,7 +23,6 @@
             padding-bottom: 30px;
         }
 
-        /* Header */
         .header {
             background: linear-gradient(135deg, #007aff, #5856d6);
             color: white;
@@ -37,7 +36,6 @@
         .header h1 { margin: 0; font-size: 22px; }
         .header p { margin: 5px 0 0; opacity: 0.8; font-size: 14px; }
 
-        /* Card Style */
         .card {
             background: var(--card-bg);
             margin: 15px;
@@ -48,7 +46,6 @@
 
         h3 { margin-top: 0; display: flex; align-items: center; gap: 8px; }
 
-        /* Schedule Section */
         #dayTitle { color: var(--primary); font-size: 1.2rem; }
         #schedule { font-weight: bold; margin: 10px 0; font-size: 1.1rem; min-height: 1.5em; }
         
@@ -63,7 +60,6 @@
 
         .nav-btns { display: flex; justify-content: space-between; margin-top: 15px; }
 
-        /* Form Controls */
         input {
             width: calc(50% - 22px);
             padding: 10px;
@@ -85,7 +81,6 @@
         button.secondary { background: #e5e5ea; color: var(--text); }
         button.delete { background: none; color: var(--danger); padding: 4px 8px; }
 
-        /* Expense List */
         .expense-item {
             display: flex;
             justify-content: space-between;
@@ -94,7 +89,6 @@
             border-bottom: 1px solid #f2f2f7;
         }
 
-        /* Packing List */
         .packing-item {
             display: flex;
             align-items: center;
@@ -115,7 +109,7 @@
 </div>
 
 <div class="card">
-    <h3 id="dayTitle">Day 1</h3>
+    <h3 id="dayTitle">Day 1 (3月11日)</h3>
     <div id="schedule">載入中...</div>
     <iframe id="mapFrame" src=""></iframe>
     <div class="nav-btns">
@@ -143,9 +137,9 @@
 </div>
 
 <script>
-/* ===== 設定區：修改這裡即可更新行程 ===== */
+/* ===== 設定區：正確行程與時間 ===== */
 const CONFIG = {
-    tripStart: new Date("2026-03-11T08:00:00"),
+    tripStart: new Date("2026-03-11T00:00:00"), // 確保時間從當天零點開始
     tripDays: 6,
     jpyRate: 0.21,
     schedule: [
@@ -174,16 +168,23 @@ window.onload = () => {
 
 function initDay() {
     const now = new Date();
-    // 簡單判斷當前日期是否在旅程期間
-    const diff = now - CONFIG.tripStart;
-    const day = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+    // 計算與出發日期的天數差
+    const diffTime = now - CONFIG.tripStart;
+    const day = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
     currentDay = (day > 0 && day <= CONFIG.tripDays) ? day : 1;
 }
 
 function updateUI() {
     const data = CONFIG.schedule[currentDay - 1];
+    
+    // 正確計算顯示日期
+    const displayDate = new Date(CONFIG.tripStart);
+    displayDate.setDate(CONFIG.tripStart.getDate() + (currentDay - 1));
+    const month = displayDate.getMonth() + 1;
+    const date = displayDate.getDate();
+
     document.getElementById("dayDisplay").innerText = `第 ${currentDay} 天`;
-    document.getElementById("dayTitle").innerText = `Day ${currentDay} (${3+10+currentDay}月${10+currentDay}日)`; // 簡單計算日期顯示
+    document.getElementById("dayTitle").innerText = `Day ${currentDay} (${month}月${date}日)`;
     document.getElementById("schedule").innerText = data.title;
     
     // 更新地圖
