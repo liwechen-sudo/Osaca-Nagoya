@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>京阪名親子遊助手</title>
+    <title>京阪名親子遊助手 V2</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -13,6 +13,7 @@
             --text: #1c1c1e;
             --gray: #8e8e93;
             --danger: #ff3b30;
+            --accent: #ff9500;
         }
 
         body {
@@ -30,11 +31,7 @@
             text-align: center;
             border-bottom-left-radius: 20px;
             border-bottom-right-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-
-        .header h1 { margin: 0; font-size: 22px; }
-        .header p { margin: 5px 0 0; opacity: 0.8; font-size: 14px; }
 
         .card {
             background: var(--card-bg);
@@ -44,74 +41,67 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
-        h3 { margin-top: 0; display: flex; align-items: center; gap: 8px; }
+        h3 { margin-top: 0; color: var(--primary); }
 
-        #dayTitle { color: var(--primary); font-size: 1.2rem; }
-        #schedule { font-weight: bold; margin: 10px 0; font-size: 1.1rem; min-height: 1.5em; }
-        
+        /* 行程清單樣式 */
+        .schedule-list {
+            text-align: left;
+            padding: 0;
+            list-style: none;
+        }
+        .schedule-item {
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .schedule-item:last-child { border-bottom: none; }
+        .schedule-icon { font-size: 1.2rem; }
+        .schedule-text { font-size: 1rem; line-height: 1.4; }
+        .schedule-sub { font-size: 0.85rem; color: var(--gray); margin-top: 4px; }
+
         iframe {
             width: 100%;
             height: 200px;
             border: none;
             border-radius: 12px;
-            margin-top: 10px;
+            margin-top: 15px;
             background: #eee;
         }
 
         .nav-btns { display: flex; justify-content: space-between; margin-top: 15px; }
-
-        input {
-            width: calc(50% - 22px);
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            margin-bottom: 10px;
-        }
         
         button {
-            padding: 10px 18px;
+            padding: 12px 20px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             background: var(--primary);
             color: white;
             font-weight: 600;
-            transition: opacity 0.2s;
         }
-        button:active { opacity: 0.7; }
         button.secondary { background: #e5e5ea; color: var(--text); }
-        button.delete { background: none; color: var(--danger); padding: 4px 8px; }
 
-        .expense-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #f2f2f7;
-        }
-
-        .packing-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 0;
-            cursor: pointer;
-        }
-        .packing-item input { width: auto; margin-right: 12px; }
+        /* 記帳樣式 */
+        .expense-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f2f2f7; font-size: 14px;}
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px; width: calc(50% - 22px); }
+        
+        .packing-item { display: flex; align-items: center; padding: 10px 0; cursor: pointer; }
         .checked { text-decoration: line-through; color: var(--gray); }
-
-        canvas { margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="header">
     <h1 id="dayDisplay">第 1 天</h1>
-    <p>2026 阪名親子冒險之旅</p>
+    <p>2026 阪名親子冒險</p>
 </div>
 
 <div class="card">
     <h3 id="dayTitle">Day 1 (3月11日)</h3>
-    <div id="schedule">載入中...</div>
-    <iframe id="mapFrame" src=""></iframe>
+    <ul id="scheduleList" class="schedule-list">
+        </ul>
+    <iframe id="mapFrame"></iframe>
     <div class="nav-btns">
         <button class="secondary" onclick="changeDay(-1)">← 上一天</button>
         <button onclick="changeDay(1)">下一天 →</button>
@@ -121,44 +111,83 @@
 <div class="card">
     <h3>💰 旅費記帳 (JPY 匯率: 0.21)</h3>
     <div style="display: flex; flex-wrap: wrap; gap: 5px;">
-        <input id="expenseName" placeholder="項目內容">
-        <input id="expenseAmount" type="number" placeholder="日幣金額(¥)">
-        <button style="width: 100%;" onclick="addExpense()">新增消費紀錄</button>
+        <input id="expenseName" placeholder="項目">
+        <input id="expenseAmount" type="number" placeholder="日幣 ¥">
+        <button style="width: 100%;" onclick="addExpense()">新增紀錄</button>
     </div>
-    
-    <div id="expenseList" style="margin-top: 15px; font-size: 14px;"></div>
-    <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+    <div id="expenseList"></div>
     <canvas id="expenseChart"></canvas>
 </div>
 
 <div class="card">
-    <h3>🧳 必備物資確認</h3>
+    <h3>🧳 必備物資</h3>
     <div id="packingList"></div>
 </div>
 
 <script>
-/* ===== 設定區：正確行程與時間 ===== */
 const CONFIG = {
-    tripStart: new Date("2026-03-11T00:00:00"), // 確保時間從當天零點開始
+    tripStart: new Date("2026-03-11T00:00:00"),
     tripDays: 6,
     jpyRate: 0.21,
     schedule: [
-        {title:"✈️ 台灣 → 大阪 (關西國際機場)", loc:"Kansai International Airport"},
-        {title:"🐠 海遊館 + 🎡 天保山大摩天輪", loc:"Osaka Kaiyukan Aquarium"},
-        {title:"🚄 大阪 → 名古屋 (移動日)", loc:"Nagoya Station"},
-        {title:"🌳 吉卜力公園 (宮崎駿世界)", loc:"Ghibli Park"},
-        {title:"🚂 磁浮鐵道館 + 🛍️ 大須商店街", loc:"SCMAGLEV and Railway Park"},
-        {title:"🤖 樂高樂園 → ✈️ 中部機場回台", loc:"LEGOLAND Japan"}
+        {
+            dateDisplay: "3月11日",
+            mapLoc: "Hotel Hankyu RESPIRE OSAKA",
+            items: [
+                { icon: "✈️", text: "虎航 IT284", sub: "06:55 高雄 -> 10:40 關西" },
+                { icon: "🏨", text: "Hotel Hankyu RESPIRE OSAKA", sub: "大阪龍仕柏飯店 (梅田中心位置)" },
+                { icon: "🌅", text: "梅田空中庭園", sub: "看夜景、俯瞰大阪市區" },
+                { icon: "🛍️", text: "大丸百貨梅田店 (13F)", sub: "Pokémon Center、玩具部" },
+                { icon: "🕹️", text: "梅田商圈逛街", sub: "Yodobashi (扭蛋/玩具)、Grand Front、LUCUA" }
+            ]
+        },
+        {
+            dateDisplay: "3月12日",
+            mapLoc: "Osaka Kaiyukan Aquarium",
+            items: [
+                { icon: "🐠", text: "海遊館", sub: "世界最大級水族館，看鯨鯊" },
+                { icon: "🎡", text: "天保山大摩天輪", sub: "旁邊還有天保山購物中心與樂高室內樂園" }
+            ]
+        },
+        {
+            dateDisplay: "3月13日",
+            mapLoc: "Nagoya Station",
+            items: [
+                { icon: "🚄", text: "大阪 → 名古屋 (新幹線)", sub: "車程約 50 分鐘" },
+                { icon: "🏨", text: "名古屋飯店 Check-in", sub: "建議找名古屋站周邊方便隔天行程" }
+            ]
+        },
+        {
+            dateDisplay: "3月14日",
+            mapLoc: "Ghibli Park",
+            items: [
+                { icon: "🌳", text: "吉卜力公園", sub: "宮崎駿世界 (需預約，整天行程)" }
+            ]
+        },
+        {
+            dateDisplay: "3月15日",
+            mapLoc: "SCMAGLEV and Railway Park",
+            items: [
+                { icon: "🚂", text: "磁浮鐵道館", sub: "親子必去！看各式實體新幹線" },
+                { icon: "🍜", text: "大須商店街", sub: "美食、雜貨、名古屋平民氛圍" }
+            ]
+        },
+        {
+            dateDisplay: "3月16日",
+            mapLoc: "LEGOLAND Japan",
+            items: [
+                { icon: "🤖", text: "名古屋樂高樂園", sub: "早上最後衝刺！適合 12 歲以下兒童" },
+                { icon: "✈️", text: "中部國際機場 (NGO)", sub: "晚上班機回台" }
+            ]
+        }
     ],
-    packingItems: ["護照/機票確認", "日幣現金/信用卡", "小孩常備藥", "行動電源", "雨具/保暖外套"]
+    packingItems: ["護照/簽證", "日幣現金/卡片", "小孩備用藥", "行動電源", "尿布/濕紙巾", "雨具/外套"]
 };
 
 let currentDay = 1;
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 let packingStatus = JSON.parse(localStorage.getItem("packingStatus")) || {};
 let chartInstance = null;
-
-/* ===== 核心功能 ===== */
 
 window.onload = () => {
     initDay();
@@ -167,29 +196,32 @@ window.onload = () => {
 };
 
 function initDay() {
-    const now = new Date();
-    // 計算與出發日期的天數差
-    const diffTime = now - CONFIG.tripStart;
-    const day = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    const diff = new Date() - CONFIG.tripStart;
+    const day = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
     currentDay = (day > 0 && day <= CONFIG.tripDays) ? day : 1;
 }
 
 function updateUI() {
-    const data = CONFIG.schedule[currentDay - 1];
+    const dayData = CONFIG.schedule[currentDay - 1];
     
-    // 正確計算顯示日期
-    const displayDate = new Date(CONFIG.tripStart);
-    displayDate.setDate(CONFIG.tripStart.getDate() + (currentDay - 1));
-    const month = displayDate.getMonth() + 1;
-    const date = displayDate.getDate();
-
+    // 更新標題
     document.getElementById("dayDisplay").innerText = `第 ${currentDay} 天`;
-    document.getElementById("dayTitle").innerText = `Day ${currentDay} (${month}月${date}日)`;
-    document.getElementById("schedule").innerText = data.title;
+    document.getElementById("dayTitle").innerText = `Day ${currentDay} (${dayData.dateDisplay})`;
     
+    // 更新詳細清單
+    const listEl = document.getElementById("scheduleList");
+    listEl.innerHTML = dayData.items.map(item => `
+        <li class="schedule-item">
+            <span class="schedule-icon">${item.icon}</span>
+            <div class="schedule-text">
+                <div>${item.text}</div>
+                <div class="schedule-sub">${item.sub}</div>
+            </div>
+        </li>
+    `).join("");
+
     // 更新地圖
-    const mapQuery = encodeURIComponent(data.loc);
-    document.getElementById("mapFrame").src = `https://maps.google.com/maps?q=${mapQuery}&output=embed`;
+    document.getElementById("mapFrame").src = `https://maps.google.com/maps?q=${encodeURIComponent(dayData.mapLoc)}&output=embed`;
 
     renderExpenses();
 }
@@ -203,20 +235,11 @@ function changeDay(step) {
 }
 
 /* ===== 記帳功能 ===== */
-
 function addExpense() {
     const name = document.getElementById("expenseName").value;
     const amount = parseInt(document.getElementById("expenseAmount").value);
-    
     if (!name || isNaN(amount)) return;
-
-    expenses.push({
-        id: Date.now(),
-        day: currentDay,
-        name,
-        amount
-    });
-
+    expenses.push({ id: Date.now(), day: currentDay, name, amount });
     saveAndRenderExpenses();
     document.getElementById("expenseName").value = "";
     document.getElementById("expenseAmount").value = "";
@@ -234,71 +257,43 @@ function saveAndRenderExpenses() {
 
 function renderExpenses() {
     const listEl = document.getElementById("expenseList");
-    let html = "";
-    let totals = Array(CONFIG.tripDays).fill(0);
-
     const todayExpenses = expenses.filter(e => e.day === currentDay);
     
-    if (todayExpenses.length === 0) {
-        html = `<div style="color:#999; text-align:center;">今日尚無花費</div>`;
-    } else {
-        todayExpenses.forEach(e => {
-            const twd = Math.round(e.amount * CONFIG.jpyRate);
-            html += `
-                <div class="expense-item">
-                    <span>${e.name} (¥${e.amount.toLocaleString()})</span>
-                    <span>
-                        <b style="color:#2c3e50">≈ NT$${twd}</b>
-                        <button class="delete" onclick="deleteExpense(${e.id})">✕</button>
-                    </span>
-                </div>`;
-        });
-    }
-    
-    listEl.innerHTML = html;
+    listEl.innerHTML = todayExpenses.length === 0 ? `<div style="color:#999;text-align:center;padding:10px;">尚未有花費</div>` : 
+        todayExpenses.map(e => `
+            <div class="expense-item">
+                <span>${e.name} (¥${e.amount})</span>
+                <span><b>≈ NT$${Math.round(e.amount * CONFIG.jpyRate)}</b> 
+                <button style="background:none; color:red; padding:0 5px;" onclick="deleteExpense(${e.id})">✕</button></span>
+            </div>
+        `).join("");
 
-    expenses.forEach(e => {
-        if(e.day <= CONFIG.tripDays) totals[e.day-1] += e.amount;
-    });
-    updateChart(totals);
+    updateChart();
 }
 
-function updateChart(data) {
+function updateChart() {
     const ctx = document.getElementById("expenseChart").getContext("2d");
-    if (chartInstance) chartInstance.destroy();
+    const totals = Array(CONFIG.tripDays).fill(0);
+    expenses.forEach(e => { if(e.day <= CONFIG.tripDays) totals[e.day-1] += e.amount; });
 
+    if (chartInstance) chartInstance.destroy();
     chartInstance = new Chart(ctx, {
         type: "bar",
         data: {
-            labels: Array.from({length: CONFIG.tripDays}, (_, i) => `D${i+1}`),
-            datasets: [{
-                label: "每日支出 (JPY)",
-                data: data,
-                backgroundColor: "#007aff",
-                borderRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            scales: { y: { beginAtZero: true } }
+            labels: ["D1", "D2", "D3", "D4", "D5", "D6"],
+            datasets: [{ label: "每日支出 (JPY)", data: totals, backgroundColor: "#007aff", borderRadius: 5 }]
         }
     });
 }
 
 /* ===== 行李清單 ===== */
-
 function renderPacking() {
-    const container = document.getElementById("packingList");
-    container.innerHTML = CONFIG.packingItems.map(item => {
-        const isChecked = packingStatus[item];
-        return `
-            <div class="packing-item ${isChecked ? 'checked' : ''}" onclick="toggleItem('${item}')">
-                <input type="checkbox" ${isChecked ? 'checked' : ''}>
-                <span>${item}</span>
-            </div>
-        `;
-    }).join("");
+    document.getElementById("packingList").innerHTML = CONFIG.packingItems.map(item => `
+        <div class="packing-item ${packingStatus[item] ? 'checked' : ''}" onclick="toggleItem('${item}')">
+            <input type="checkbox" ${packingStatus[item] ? 'checked' : ''}>
+            <span style="margin-left:10px">${item}</span>
+        </div>
+    `).join("");
 }
 
 function toggleItem(item) {
@@ -306,7 +301,6 @@ function toggleItem(item) {
     localStorage.setItem("packingStatus", JSON.stringify(packingStatus));
     renderPacking();
 }
-
 </script>
 
 </body>
