@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>親子旅遊管理 App</title>
-<link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{
@@ -19,19 +19,6 @@ body{
   color:white;
   padding:15px;
   font-size:18px;
-}
-
-.countdown{
-  background:white;
-  margin:10px;
-  padding:10px;
-  border-radius:12px;
-  font-weight:bold;
-}
-
-.day{
-  font-size:24px;
-  margin-top:20px;
 }
 
 .card{
@@ -50,15 +37,16 @@ button{
   color:white;
 }
 
-.expense-input{
-  padding:8px;
+input{
+  padding:6px;
   margin:5px;
-  width:40%;
 }
 
-.total{
-  font-weight:bold;
-  margin-top:10px;
+iframe{
+  width:100%;
+  height:250px;
+  border:none;
+  border-radius:12px;
 }
 </style>
 </head>
@@ -69,45 +57,44 @@ button{
 今天是旅程第 <span id="tripDay">1</span> 天
 </div>
 
-<div class="countdown" id="countdown">
-✈️ 距離出發計算中...
+<div class="card">
+<h3 id="dayTitle"></h3>
+<div id="schedule"></div>
+<iframe id="mapFrame"></iframe>
+<button onclick="prevDay()">←</button>
+<button onclick="nextDay()">→</button>
 </div>
 
-<div class="day" id="dayTitle">Day 1</div>
-
-<div class="card" id="schedule"></div>
-
-<button onclick="prevDay()">← 前一天</button>
-<button onclick="nextDay()">後一天 →</button>
-
-<hr>
-
-<h3>💰 旅遊記帳</h3>
-
-<input class="expense-input" id="expenseName" placeholder="項目">
-<input class="expense-input" id="expenseAmount" type="number" placeholder="金額">
-<br>
-<button onclick="addExpense()">新增支出</button>
-
+<div class="card">
+<h3>💰 記帳</h3>
+<input id="expenseName" placeholder="項目">
+<input id="expenseAmount" type="number" placeholder="金額">
+<button onclick="addExpense()">新增</button>
 <div id="expenseList"></div>
-<div class="total" id="totalAmount">總金額：0 元</div>
+<canvas id="expenseChart"></canvas>
+</div>
+
+<div class="card">
+<h3>🧳 行李清單</h3>
+<div id="packingList"></div>
+</div>
 
 <script>
-/* ===== 基本設定 ===== */
+/* ===== 行程資料（沿用之前版本） ===== */
 
 const tripStart = new Date("2026-03-11T08:00:00");
 const tripDays = 6;
 
 const scheduleData = [
-  {title:"✈️ 台灣 → 名古屋", location:"Nagoya Airport"},
+  {title:"✈️ 台灣 → 名古屋", location:"Chubu Centrair International Airport"},
   {title:"樂高樂園", location:"LEGOLAND Japan"},
   {title:"吉卜力公園", location:"Ghibli Park Aichi"},
-  {title:"名古屋城 + 榮", location:"Nagoya Castle"},
-  {title:"移動到大阪", location:"Shin-Osaka Station"},
-  {title:"✈️ 回台灣", location:"Kansai International Airport"}
+  {title:"名古屋城 + 榮商圈", location:"Nagoya Castle"},
+  {title:"新幹線 → 大阪", location:"Shin-Osaka Station"},
+  {title:"✈️ 關西機場回台灣", location:"Kansai International Airport"}
 ];
 
-/* ===== 計算旅程天數 ===== */
+/* ===== 旅程天數 ===== */
 
 function calculateTripDay(){
   const now = new Date();
@@ -120,58 +107,29 @@ function calculateTripDay(){
 let currentDay = calculateTripDay();
 updateDay();
 
-/* ===== 更新畫面 ===== */
-
 function updateDay(){
-  document.getElementById("tripDay").innerText = currentDay;
-  document.getElementById("dayTitle").innerText = "Day "+currentDay;
+  document.getElementById("tripDay").innerText=currentDay;
+  document.getElementById("dayTitle").innerText="Day "+currentDay;
+  document.getElementById("schedule").innerText=scheduleData[currentDay-1].title;
 
-  const data = scheduleData[currentDay-1];
-
-  document.getElementById("schedule").innerHTML =
-  data.title + "<br><br>" +
-  "<button onclick='openMap(\""+data.location+"\")'>🗺 導航</button>";
+  document.getElementById("mapFrame").src =
+  "https://www.google.com/maps?q="+
+  encodeURIComponent(scheduleData[currentDay-1].location)+"&output=embed";
 }
 
-function prevDay(){ if(currentDay>1){currentDay--; updateDay();}}
-function nextDay(){ if(currentDay<tripDays){currentDay++; updateDay();}}
+function prevDay(){if(currentDay>1){currentDay--;updateDay();}}
+function nextDay(){if(currentDay<tripDays){currentDay++;updateDay();}}
 
-function openMap(place){
-  window.open("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(place));
-}
-
-/* ===== 機場倒數 ===== */
-
-function updateCountdown(){
-  const now = new Date();
-  const diff = tripStart - now;
-
-  if(diff>0){
-    const days = Math.floor(diff/(1000*60*60*24));
-    const hours = Math.floor((diff%(1000*60*60*24))/(1000*60*60));
-    const mins = Math.floor((diff%(1000*60*60))/(1000*60));
-
-    document.getElementById("countdown").innerText =
-    `✈️ 距離出發還有 ${days} 天 ${hours} 小時 ${mins} 分`;
-  } else {
-    document.getElementById("countdown").innerText="🎉 已出發！";
-  }
-}
-
-setInterval(updateCountdown,60000);
-updateCountdown();
-
-/* ===== 記帳功能 ===== */
+/* ===== 記帳功能（每日分類） ===== */
 
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 
 function addExpense(){
-  const name = document.getElementById("expenseName").value;
-  const amount = parseInt(document.getElementById("expenseAmount").value);
+  const name=document.getElementById("expenseName").value;
+  const amount=parseInt(document.getElementById("expenseAmount").value);
+  if(!name||!amount)return;
 
-  if(!name || !amount) return;
-
-  expenses.push({name,amount});
+  expenses.push({day:currentDay,name,amount});
   localStorage.setItem("expenses",JSON.stringify(expenses));
 
   document.getElementById("expenseName").value="";
@@ -182,18 +140,62 @@ function addExpense(){
 
 function renderExpenses(){
   let html="";
-  let total=0;
+  let dailyTotals=Array(tripDays).fill(0);
 
   expenses.forEach(e=>{
-    html += e.name + " - " + e.amount + " 元<br>";
-    total+=e.amount;
+    html+=`Day${e.day} ${e.name} - ${e.amount}元<br>`;
+    dailyTotals[e.day-1]+=e.amount;
   });
 
   document.getElementById("expenseList").innerHTML=html;
-  document.getElementById("totalAmount").innerText="總金額："+total+" 元";
+  updateChart(dailyTotals);
+}
+
+let chart;
+function updateChart(data){
+  if(chart)chart.destroy();
+
+  chart=new Chart(document.getElementById("expenseChart"),{
+    type:"bar",
+    data:{
+      labels:["D1","D2","D3","D4","D5","D6"],
+      datasets:[{
+        label:"每日花費",
+        data:data
+      }]
+    }
+  });
 }
 
 renderExpenses();
+
+/* ===== 行李清單 ===== */
+
+const packingItems=[
+  "護照","機票","小孩外套","充電器","行動電源","雨具"
+];
+
+let packingStatus=JSON.parse(localStorage.getItem("packingStatus"))||{};
+
+function renderPacking(){
+  let html="";
+  packingItems.forEach(item=>{
+    const checked=packingStatus[item]?"checked":"";
+    html+=`<label>
+    <input type="checkbox" onchange="toggleItem('${item}')" ${checked}>
+    ${item}
+    </label><br>`;
+  });
+  document.getElementById("packingList").innerHTML=html;
+}
+
+function toggleItem(item){
+  packingStatus[item]=!packingStatus[item];
+  localStorage.setItem("packingStatus",JSON.stringify(packingStatus));
+}
+
+renderPacking();
+
 </script>
 
 </body>
