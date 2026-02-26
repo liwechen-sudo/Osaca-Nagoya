@@ -35,58 +35,63 @@ body { padding-bottom:80px; }
 <p class="text-sm opacity-80">3/11 - 3/16</p>
 </header>
 
-<section>
+<section data-date="2026-03-11">
 <div class="day-header">D1 | 抵達大阪</div>
-<div class="p-4 space-y-3">
+<div class="p-4">
 <div class="bg-white p-3 rounded shadow border-l-4 border-orange-400" data-energy="20">
 <p class="font-bold">抵達飯店＋梅田午餐</p>
 </div>
 </div>
+</section>
 
+<section data-date="2026-03-12">
 <div class="day-header">D2 | 海遊館</div>
-<div class="p-4 space-y-3">
+<div class="p-4">
 <div class="bg-white p-3 rounded shadow border-l-4 border-blue-400" data-energy="35">
 <p class="font-bold">海遊館</p>
 </div>
 <div class="bg-white p-3 rounded shadow border-l-4 border-gray-400" data-energy="10">
-<p class="font-bold">天保山摩天輪</p>
+<p class="font-bold">摩天輪</p>
 </div>
 </div>
+</section>
 
+<section data-date="2026-03-13">
 <div class="day-header">D3 | 轉場名古屋</div>
-<div class="p-4 space-y-3">
+<div class="p-4">
 <div class="bg-white p-3 rounded shadow border-l-4 border-green-400" data-energy="30">
-<p class="font-bold">新幹線移動</p>
-</div>
-<div class="bg-white p-3 rounded shadow border-l-4 border-pink-400" data-energy="20">
-<p class="font-bold">榮商圈</p>
+<p class="font-bold">新幹線</p>
 </div>
 </div>
+</section>
 
+<section data-date="2026-03-14">
 <div class="day-header">D4 | 吉卜力公園</div>
-<div class="p-4 space-y-3">
+<div class="p-4">
 <div class="bg-white p-3 rounded shadow border-l-4 border-yellow-500" data-energy="50">
 <p class="font-bold">吉卜力大倉庫</p>
 </div>
 </div>
+</section>
 
+<section data-date="2026-03-15">
 <div class="day-header">D5 | 鐵道館＋大須</div>
-<div class="p-4 space-y-3">
+<div class="p-4">
 <div class="bg-white p-3 rounded shadow border-l-4 border-purple-500" data-energy="40">
 <p class="font-bold">磁浮鐵道館</p>
 </div>
-<div class="bg-white p-3 rounded shadow border-l-4 border-pink-500" data-energy="20">
-<p class="font-bold">大須商店街</p>
 </div>
-</div>
+</section>
 
+<section data-date="2026-03-16">
 <div class="day-header">D6 | 樂高樂園</div>
-<div class="p-4 space-y-3">
+<div class="p-4">
 <div class="bg-white p-3 rounded shadow border-l-4 border-yellow-400" data-energy="45">
 <p class="font-bold">樂高樂園</p>
 </div>
 </div>
 </section>
+
 <!-- 體力條 -->
 <div id="energyBarContainer" class="fixed bottom-0 left-0 w-full bg-white shadow-lg p-3">
 <div class="flex justify-between text-xs mb-1">
@@ -99,13 +104,35 @@ body { padding-bottom:80px; }
 </div>
 
 <script>
+<script>
+function showTodaySchedule() {
+const today = new Date().toISOString().split("T")[0];
+const sections = document.querySelectorAll("section");
+
+let foundToday = false;
+
+sections.forEach(section => {
+if(section.dataset.date === today){
+section.style.display = "block";
+foundToday = true;
+} else {
+section.style.display = "none";
+}
+});
+
+if(!foundToday){
+sections.forEach(section => section.style.display = "block");
+}
+}
+
 function calculateEnergy() {
 let total = 0;
 const limit = 100;
-const items = document.querySelectorAll("[data-energy]");
+const visibleSection = document.querySelector("section[style*='block']") || document.querySelector("section");
+const items = visibleSection.querySelectorAll("[data-energy]");
 items.forEach(item => total += parseInt(item.dataset.energy));
-let percent = Math.min((total/limit)*100,120);
 
+let percent = Math.min((total/limit)*100,120);
 document.getElementById("energyBar").style.width = percent+"%";
 document.getElementById("energyPercent").innerText = Math.round(percent)+"%";
 
@@ -114,7 +141,12 @@ if(percent>=100){bar.className="h-3 rounded-full bg-red-500";}
 else if(percent>=80){bar.className="h-3 rounded-full bg-orange-500";}
 else{bar.className="h-3 rounded-full bg-green-500";}
 }
+
+window.addEventListener("load", function(){
+showTodaySchedule();
 calculateEnergy();
+});
+</script>
 
 /* 通知 */
 function requestNotificationPermission(){
