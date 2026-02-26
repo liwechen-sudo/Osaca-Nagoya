@@ -3,199 +3,197 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>日本親子行程</title>
-<script src="https://cdn.tailwindcss.com"></script>
-
+<title>親子旅遊管理 App</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#F97316">
 
 <style>
-body { padding-bottom:80px; }
-.day-header {
-background:#F97316;
-color:white;
-padding:12px;
-text-align:center;
-font-weight:bold;
+body{
+  font-family:-apple-system;
+  margin:0;
+  background:#f2f2f7;
+  text-align:center;
+}
+
+.header{
+  background:#007aff;
+  color:white;
+  padding:15px;
+  font-size:18px;
+}
+
+.countdown{
+  background:white;
+  margin:10px;
+  padding:10px;
+  border-radius:12px;
+  font-weight:bold;
+}
+
+.day{
+  font-size:24px;
+  margin-top:20px;
+}
+
+.card{
+  background:white;
+  margin:10px;
+  padding:15px;
+  border-radius:16px;
+}
+
+button{
+  padding:8px 12px;
+  margin:5px;
+  border:none;
+  border-radius:12px;
+  background:#007aff;
+  color:white;
+}
+
+.expense-input{
+  padding:8px;
+  margin:5px;
+  width:40%;
+}
+
+.total{
+  font-weight:bold;
+  margin-top:10px;
 }
 </style>
 </head>
 
-<body class="bg-gray-100">
+<body>
 
-<!-- ===== 頂部控制列 ===== -->
-<div class="bg-orange-600 text-white p-3 flex items-center justify-between">
-
-<button onclick="prevDay()" class="px-3">◀</button>
-
-<div class="text-center">
-<div id="dayIndicator" class="font-bold"></div>
-<div class="text-xs opacity-80">3/11 - 3/16</div>
+<div class="header">
+今天是旅程第 <span id="tripDay">1</span> 天
 </div>
 
-<button onclick="nextDay()" class="px-3">▶</button>
-
+<div class="countdown" id="countdown">
+✈️ 距離出發計算中...
 </div>
 
-<!-- 快速切換 -->
-<div class="bg-white flex justify-center space-x-2 py-2 shadow">
-<button onclick="goToDay(0)">D1</button>
-<button onclick="goToDay(1)">D2</button>
-<button onclick="goToDay(2)">D3</button>
-<button onclick="goToDay(3)">D4</button>
-<button onclick="goToDay(4)">D5</button>
-<button onclick="goToDay(5)">D6</button>
-</div>
+<div class="day" id="dayTitle">Day 1</div>
 
-<!-- ===== 行程內容 ===== -->
-<div id="scheduleContainer"></div>
+<div class="card" id="schedule"></div>
 
-<!-- ===== 體力條 ===== -->
-<div class="fixed bottom-0 left-0 w-full bg-white shadow-lg p-3">
-<div class="flex justify-between text-xs mb-1">
-<span>今日體力</span>
-<span id="energyPercent">0%</span>
-</div>
-<div class="w-full bg-gray-200 rounded-full h-3">
-<div id="energyBar" class="h-3 rounded-full bg-green-500" style="width:0%"></div>
-</div>
-</div>
+<button onclick="prevDay()">← 前一天</button>
+<button onclick="nextDay()">後一天 →</button>
+
+<hr>
+
+<h3>💰 旅遊記帳</h3>
+
+<input class="expense-input" id="expenseName" placeholder="項目">
+<input class="expense-input" id="expenseAmount" type="number" placeholder="金額">
+<br>
+<button onclick="addExpense()">新增支出</button>
+
+<div id="expenseList"></div>
+<div class="total" id="totalAmount">總金額：0 元</div>
 
 <script>
+/* ===== 基本設定 ===== */
 
-/* ===== 行程資料 ===== */
-const tripStart = new Date("2026-03-11");
+const tripStart = new Date("2026-03-11T08:00:00");
+const tripDays = 6;
 
 const scheduleData = [
-{
-title:"D1 抵達大阪",
-date:"2026-03-11",
-events:[
-{time:"12:30",name:"飯店＋梅田午餐",transport:"步行",energy:20,map:"https://maps.google.com?q=Hotel Hankyu Respire Osaka"}
-]
-},
-{
-title:"D2 海遊館",
-date:"2026-03-12",
-events:[
-{time:"10:30",name:"海遊館",transport:"地鐵中央線",energy:35,map:"https://maps.google.com?q=Osaka Kaiyukan"},
-{time:"15:00",name:"天保山摩天輪",transport:"步行5分鐘",energy:10,map:"https://maps.google.com?q=Tempozan Ferris Wheel"}
-]
-},
-{
-title:"D3 名古屋移動",
-date:"2026-03-13",
-events:[
-{time:"09:00",name:"新幹線前往名古屋",transport:"新幹線",energy:30,map:"https://maps.google.com?q=Nagoya Station"}
-]
-},
-{
-title:"D4 吉卜力公園",
-date:"2026-03-14",
-events:[
-{time:"10:00",name:"吉卜力大倉庫",transport:"地鐵東山線",energy:50,map:"https://maps.google.com?q=Ghibli Park"}
-]
-},
-{
-title:"D5 鐵道館",
-date:"2026-03-15",
-events:[
-{time:"11:00",name:"磁浮鐵道館",transport:"青波線",energy:40,map:"https://maps.google.com?q=SCMAGLEV Railway Park"}
-]
-},
-{
-title:"D6 樂高樂園",
-date:"2026-03-16",
-events:[
-{time:"10:00",name:"樂高樂園",transport:"青波線",energy:45,map:"https://maps.google.com?q=LEGOLAND Japan"}
-]
-}
+  {title:"✈️ 台灣 → 名古屋", location:"Nagoya Airport"},
+  {title:"樂高樂園", location:"LEGOLAND Japan"},
+  {title:"吉卜力公園", location:"Ghibli Park Aichi"},
+  {title:"名古屋城 + 榮", location:"Nagoya Castle"},
+  {title:"移動到大阪", location:"Shin-Osaka Station"},
+  {title:"✈️ 回台灣", location:"Kansai International Airport"}
 ];
 
-let currentDayIndex = 0;
+/* ===== 計算旅程天數 ===== */
 
-/* ===== 初始化 ===== */
-function init(){
-const today = new Date();
-const diff = Math.floor((today - tripStart)/(1000*60*60*24));
-if(diff>=0 && diff<scheduleData.length){
-currentDayIndex = diff;
-}
-renderDay();
+function calculateTripDay(){
+  const now = new Date();
+  const diff = now - tripStart;
+  const day = Math.floor(diff/(1000*60*60*24))+1;
+  if(day>0 && day<=tripDays){return day;}
+  return 1;
 }
 
-function renderDay(){
-const data = scheduleData[currentDayIndex];
-document.getElementById("dayIndicator").innerText =
-`今天是旅程第 ${currentDayIndex+1} 天`;
+let currentDay = calculateTripDay();
+updateDay();
 
-let html = `<div class="p-4 space-y-4">`;
+/* ===== 更新畫面 ===== */
 
-let totalEnergy = 0;
+function updateDay(){
+  document.getElementById("tripDay").innerText = currentDay;
+  document.getElementById("dayTitle").innerText = "Day "+currentDay;
 
-data.events.forEach(e=>{
-totalEnergy += e.energy;
-html += `
-<div class="bg-white p-4 rounded-xl shadow">
-<p class="font-bold">${e.time} ${e.name}</p>
-<p class="text-sm text-gray-500">🚄 ${e.transport}</p>
-<a href="${e.map}" target="_blank"
-class="mt-2 inline-block text-blue-600 text-sm">
-📍 打開地圖
-</a>
-</div>
-`;
-});
+  const data = scheduleData[currentDay-1];
 
-html += "</div>";
-document.getElementById("scheduleContainer").innerHTML = html;
-
-updateEnergy(totalEnergy);
+  document.getElementById("schedule").innerHTML =
+  data.title + "<br><br>" +
+  "<button onclick='openMap(\""+data.location+"\")'>🗺 導航</button>";
 }
 
-function updateEnergy(total){
-let percent = Math.min(total,120);
-document.getElementById("energyBar").style.width = percent+"%";
-document.getElementById("energyPercent").innerText = percent+"%";
+function prevDay(){ if(currentDay>1){currentDay--; updateDay();}}
+function nextDay(){ if(currentDay<tripDays){currentDay++; updateDay();}}
 
-const bar = document.getElementById("energyBar");
-
-if(percent>=100) bar.className="h-3 rounded-full bg-red-500";
-else if(percent>=80) bar.className="h-3 rounded-full bg-orange-500";
-else bar.className="h-3 rounded-full bg-green-500";
+function openMap(place){
+  window.open("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(place));
 }
 
-/* ===== 切換功能 ===== */
-function nextDay(){
-if(currentDayIndex < scheduleData.length-1){
-currentDayIndex++;
-renderDay();
-}
-}
-function prevDay(){
-if(currentDayIndex > 0){
-currentDayIndex--;
-renderDay();
-}
-}
-function goToDay(i){
-currentDayIndex = i;
-renderDay();
+/* ===== 機場倒數 ===== */
+
+function updateCountdown(){
+  const now = new Date();
+  const diff = tripStart - now;
+
+  if(diff>0){
+    const days = Math.floor(diff/(1000*60*60*24));
+    const hours = Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+    const mins = Math.floor((diff%(1000*60*60))/(1000*60));
+
+    document.getElementById("countdown").innerText =
+    `✈️ 距離出發還有 ${days} 天 ${hours} 小時 ${mins} 分`;
+  } else {
+    document.getElementById("countdown").innerText="🎉 已出發！";
+  }
 }
 
-/* ===== 手勢滑動 ===== */
-let startX = 0;
-document.addEventListener("touchstart", e=>{
-startX = e.touches[0].clientX;
-});
-document.addEventListener("touchend", e=>{
-let diff = e.changedTouches[0].clientX - startX;
-if(diff > 50) prevDay();
-if(diff < -50) nextDay();
-});
+setInterval(updateCountdown,60000);
+updateCountdown();
 
-init();
+/* ===== 記帳功能 ===== */
 
+let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+
+function addExpense(){
+  const name = document.getElementById("expenseName").value;
+  const amount = parseInt(document.getElementById("expenseAmount").value);
+
+  if(!name || !amount) return;
+
+  expenses.push({name,amount});
+  localStorage.setItem("expenses",JSON.stringify(expenses));
+
+  document.getElementById("expenseName").value="";
+  document.getElementById("expenseAmount").value="";
+
+  renderExpenses();
+}
+
+function renderExpenses(){
+  let html="";
+  let total=0;
+
+  expenses.forEach(e=>{
+    html += e.name + " - " + e.amount + " 元<br>";
+    total+=e.amount;
+  });
+
+  document.getElementById("expenseList").innerHTML=html;
+  document.getElementById("totalAmount").innerText="總金額："+total+" 元";
+}
+
+renderExpenses();
 </script>
 
 </body>
