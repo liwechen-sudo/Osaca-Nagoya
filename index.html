@@ -1,303 +1,320 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>京阪名親子遊導航助手 V3</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary: #007aff;
-            --bg: #f2f2f7;
-            --card-bg: #ffffff;
-            --text: #1c1c1e;
-            --gray: #8e8e93;
-            --accent: #34c759;
-            --danger: #ff3b30;
-            --warning: #ff9500;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>京阪名親子遊助手</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            background: var(--bg);
-            color: var(--text);
-            padding-bottom: 40px;
-        }
+<style>
+:root{
+ --primary:#007aff;
+ --bg:#f2f2f7;
+ --card:#fff;
+ --danger:#ff3b30;
+}
 
-        .header {
-            background: linear-gradient(135deg, #007aff, #5856d6);
-            color: white;
-            padding: 20px 15px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+body{
+ font-family:-apple-system;
+ margin:0;
+ background:var(--bg);
+ padding-bottom:40px;
+}
 
-        .card {
-            background: var(--card-bg);
-            margin: 12px;
-            padding: 18px;
-            border-radius: 18px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
+.header{
+ background:linear-gradient(135deg,#007aff,#5856d6);
+ color:white;
+ padding:25px 15px;
+ text-align:center;
+ border-bottom-left-radius:20px;
+ border-bottom-right-radius:20px;
+}
 
-        h3 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-left: 4px solid var(--primary); padding-left: 10px; }
+.card{
+ background:var(--card);
+ margin:15px;
+ padding:18px;
+ border-radius:18px;
+ box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
 
-        /* 行程清單 */
-        .schedule-list { text-align: left; padding: 0; list-style: none; }
-        .schedule-item {
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            background: #f8f8fa;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: 0.2s;
-        }
-        .schedule-item.active { border-color: var(--primary); background: #f0f7ff; }
-        .schedule-time { font-size: 0.75rem; color: var(--primary); font-weight: bold; min-width: 45px; margin-top: 3px; }
-        .schedule-icon { font-size: 1.2rem; }
-        .schedule-text { font-size: 0.95rem; font-weight: 600; flex: 1; }
-        .schedule-sub { font-size: 0.8rem; color: var(--gray); margin-top: 2px; font-weight: normal; line-height: 1.3; }
-        
-        /* 提醒標籤 */
-        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-top: 4px; font-weight: bold; }
-        .badge-ticket { background: #e1f5fe; color: #0288d1; border: 1px solid #0288d1; }
-        .badge-tip { background: #fff3e0; color: #ef6c00; border: 1px solid #ef6c00; }
+button{
+ padding:8px 14px;
+ border:none;
+ border-radius:10px;
+ background:var(--primary);
+ color:white;
+ font-weight:600;
+}
 
-        /* 地圖區域 */
-        .map-container { width: 100%; height: 230px; margin-bottom: 15px; }
-        iframe { width: 100%; height: 100%; border: none; border-radius: 14px; background: #eee; }
+button.delete{
+ background:none;
+ color:var(--danger);
+}
 
-        .nav-btns { display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; }
-        button { flex: 1; padding: 12px; border: none; border-radius: 12px; background: var(--primary); color: white; font-weight: 600; }
-        button.secondary { background: #e5e5ea; color: var(--text); }
+input{
+ width:100%;
+ padding:8px;
+ margin:5px 0;
+ border-radius:8px;
+ border:1px solid #ddd;
+}
 
-        /* 記帳樣式 */
-        .expense-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f2f2f7; font-size: 14px;}
-        input { padding: 10px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 10px; width: calc(50% - 22px); }
-        .packing-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f9f9f9; cursor: pointer; }
-        .checked { text-decoration: line-through; color: var(--gray); }
-    </style>
+iframe{
+ width:100%;
+ height:220px;
+ border:none;
+ border-radius:12px;
+ margin-top:10px;
+}
+
+.expense-item{
+ display:flex;
+ justify-content:space-between;
+ padding:6px 0;
+}
+
+.packing-item{
+ display:flex;
+ align-items:center;
+ padding:8px 0;
+}
+
+.checked{
+ text-decoration:line-through;
+ opacity:0.6;
+}
+</style>
 </head>
+
 <body>
 
 <div class="header">
-    <h2 id="dayDisplay" style="margin:0">Day 1</h2>
-    <div id="dateDisplay" style="font-size:0.9rem; opacity:0.9">3月11日</div>
+<h2 id="dayDisplay">第1天</h2>
+<div id="countdown"></div>
 </div>
 
 <div class="card">
-    <div class="map-container">
-        <iframe id="mapFrame"></iframe>
-    </div>
-    
-    <ul id="scheduleList" class="schedule-list"></ul>
-    
-    <div class="nav-btns">
-        <button class="secondary" onclick="changeDay(-1)">← 上一天</button>
-        <button onclick="changeDay(1)">下一天 →</button>
-    </div>
+<h3 id="dayTitle"></h3>
+<div id="schedule"></div>
+<iframe id="mapFrame"></iframe>
+<br>
+<button onclick="changeDay(-1)">←</button>
+<button onclick="changeDay(1)">→</button>
 </div>
 
 <div class="card">
-    <h3>🧳 必備物資確認</h3>
-    <div id="packingList"></div>
+<h3>➕ 新增景點</h3>
+<input id="newSpotDay" type="number" min="1" max="6" placeholder="加入第幾天">
+<input id="newSpotTitle" placeholder="景點名稱">
+<input id="newSpotLoc" placeholder="地圖搜尋關鍵字">
+<button onclick="addSpot()">加入行程</button>
 </div>
 
 <div class="card">
-    <h3>💰 旅費記帳 (JPY: 0.21)</h3>
-    <div style="display: flex; gap: 5px;">
-        <input id="expenseName" placeholder="項目內容">
-        <input id="expenseAmount" type="number" placeholder="日幣 ¥">
-    </div>
-    <button style="width: 100%;" onclick="addExpense()">新增紀錄</button>
-    <div id="expenseList" style="margin-top:15px"></div>
-    <canvas id="expenseChart" height="150"></canvas>
+<h3>💰 旅費記帳</h3>
+<input id="expenseName" placeholder="項目">
+<input id="expenseAmount" type="number" placeholder="金額(¥)">
+<button onclick="addExpense()">新增</button>
+<div id="expenseList"></div>
+<canvas id="expenseChart"></canvas>
+</div>
+
+<div class="card">
+<h3>🧳 行李清單</h3>
+<div id="packingList"></div>
 </div>
 
 <script>
-const CONFIG = {
-    tripStart: new Date("2026-03-11T00:00:00"),
-    tripDays: 6,
-    jpyRate: 0.21,
-    schedule: [
-        {
-            date: "3月11日",
-            items: [
-                { time: "06:55", icon: "✈️", title: "虎航 IT284", sub: "高雄出發，10:40 抵達關西 KIX", loc: "Kansai International Airport" },
-                { time: "14:00", icon: "🏨", title: "大阪龍仕柏飯店", sub: "梅田站直結，Hotel Hankyu RESPIRE", loc: "Hotel Hankyu RESPIRE OSAKA" },
-                { time: "16:00", icon: "🌅", title: "梅田空中庭園", sub: "看夕陽，5歲小孩也適合的夜景", loc: "Umeda Sky Building" },
-                { time: "17:30", icon: "🛍️", title: "大丸百貨 (13F)", sub: "寶可夢中心、任天堂旗艦店", loc: "Daimaru Umeda" },
-                { time: "19:00", icon: "🕹️", title: "Yodobashi / Grand Front", sub: "玩具、扭蛋、各式親子友善餐廳", loc: "Yodobashi Camera Multimedia Umeda" }
-            ]
-        },
-        {
-            date: "3月12日",
-            items: [
-                { time: "09:20", icon: "🚇", title: "梅田出發 (地鐵轉乘)", sub: "御堂筋線(本町站轉) -> 中央線(大阪港站)", loc: "Osakako Station" },
-                { time: "10:00", icon: "🐠", title: "海遊館 (重點景點)", sub: "已買電子票(10點時段)。看鯨鯊、觸摸池，全程有無障礙坡道", loc: "Osaka Kaiyukan Aquarium", badge: "badge-ticket", badgeText: "🎟️ 已預約 10:00" },
-                { time: "12:30", icon: "🍱", title: "天保山購物中心午餐", sub: "推薦 2F 浪花美食橫丁(北極星蛋包飯、會津屋章魚燒)", loc: "Tempozan Marketplace" },
-                { time: "14:00", icon: "🎡", title: "下午活動 (二選一)", sub: "A:天保山摩天輪 / B:觀光船聖瑪麗亞號 (海遊館後方)", loc: "Tempozan Giant Ferris Wheel" },
-                { time: "17:00", icon: "🧸", title: "回梅田：Yodobashi 5F", sub: "巨大玩具區(戰鬥陀螺、Tomica)。大人可輪流去 B1 買藥妝", loc: "Links Umeda" },
-                { time: "18:30", icon: "🍜", title: "晚餐：梅田商圈", sub: "Grand Front 或 Yodobashi 8F 美食街 (座位寬敞)", loc: "Grand Front Osaka" }
-            ]
-        },
-        {
-            date: "3月13日",
-            items: [
-                { time: "10:00", icon: "🚄", title: "大阪 → 名古屋", sub: "搭乘新幹線前往名古屋站", loc: "Nagoya Station" },
-                { time: "14:00", icon: "🏨", title: "名古屋飯店 Check-in", sub: "放置行李稍作休息", loc: "Nagoya Station" }
-            ]
-        },
-        {
-            date: "3月14日",
-            items: [
-                { time: "10:00", icon: "🌳", title: "吉卜力公園", sub: "整日行程。宮崎駿世界巡禮", loc: "Ghibli Park" }
-            ]
-        },
-        {
-            date: "3月15日",
-            items: [
-                { time: "10:00", icon: "🚂", title: "磁浮鐵道館", sub: "各式新幹線實體展出，小孩天堂", loc: "SCMAGLEV and Railway Park" },
-                { time: "15:00", icon: "🛍️", title: "大須商店街", sub: "藥妝補貨、美食小吃", loc: "Osu Shopping District" }
-            ]
-        },
-        {
-            date: "3月16日",
-            items: [
-                { time: "09:30", icon: "🤖", title: "名古屋樂高樂園", sub: "全日遊玩，適合小朋友最後衝刺", loc: "LEGOLAND Japan" },
-                { time: "17:00", icon: "✈️", title: "中部國際機場回台", sub: "準備搭機返回溫暖的家", loc: "Chubu Centrair International Airport" }
-            ]
-        }
-    ],
-    packingItems: ["護照/簽證", "日幣現金/卡片", "小孩備用藥", "行動電源", "尿布/濕紙巾", "雨具/外套"]
+
+/* ===== 基本設定 ===== */
+
+const CONFIG={
+ tripStart:new Date("2026-03-11T00:00:00"),
+ tripDays:6,
+ defaultSchedule:[
+  {day:1,title:"✈️ 台灣 → 大阪",loc:"Kansai International Airport"},
+  {day:2,title:"🐠 海遊館",loc:"Osaka Kaiyukan Aquarium"},
+  {day:3,title:"🚄 大阪 → 名古屋",loc:"Nagoya Station"},
+  {day:4,title:"🌳 吉卜力公園",loc:"Ghibli Park"},
+  {day:5,title:"🚂 磁浮鐵道館",loc:"SCMAGLEV and Railway Park"},
+  {day:6,title:"🤖 樂高樂園",loc:"LEGOLAND Japan"}
+ ],
+ packingItems:["護照","日幣","小孩常備藥","行動電源","雨具"]
 };
 
-let currentDay = 1;
-let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
-let packingStatus = JSON.parse(localStorage.getItem("packingStatus")) || {};
-let chartInstance = null;
+let currentDay=1;
+let userSpots=JSON.parse(localStorage.getItem("userSpots"))||[];
+let expenses=JSON.parse(localStorage.getItem("expenses"))||[];
+let packingStatus=JSON.parse(localStorage.getItem("packingStatus"))||{};
+let chart;
 
-window.onload = () => {
-    initDay();
-    updateUI();
-    renderPacking();
-};
+/* ===== 初始化 ===== */
 
-function initDay() {
-    const diff = new Date() - CONFIG.tripStart;
-    const day = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
-    currentDay = (day > 0 && day <= CONFIG.tripDays) ? day : 1;
+window.onload=function(){
+ initDay();
+ updateUI();
+ renderPacking();
+ updateCountdown();
+ setInterval(updateCountdown,60000);
 }
 
-function updateUI() {
-    const dayData = CONFIG.schedule[currentDay - 1];
-    document.getElementById("dayDisplay").innerText = `第 ${currentDay} 天`;
-    document.getElementById("dateDisplay").innerText = dayData.date;
-    
-    const listEl = document.getElementById("scheduleList");
-    listEl.innerHTML = dayData.items.map((item, index) => `
-        <li class="schedule-item ${index === 0 ? 'active' : ''}" onclick="setMap('${item.loc}', this)">
-            <div class="schedule-time">${item.time}</div>
-            <span class="schedule-icon">${item.icon}</span>
-            <div class="schedule-text">
-                <div>${item.title}</div>
-                <div class="schedule-sub">${item.sub}</div>
-                ${item.badge ? `<span class="badge ${item.badge}">${item.badgeText}</span>` : ''}
-            </div>
-        </li>
-    `).join("");
+/* ===== 旅程天數 ===== */
 
-    if (dayData.items.length > 0) setMap(dayData.items[0].loc);
-    renderExpenses();
+function initDay(){
+ const now=new Date();
+ const diff=now-CONFIG.tripStart;
+ const day=Math.floor(diff/(1000*60*60*24))+1;
+ if(day>0&&day<=CONFIG.tripDays) currentDay=day;
 }
 
-function setMap(location, element) {
-    const searchUrl = `https://maps.google.com/maps?q=${encodeURIComponent(location)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-    document.getElementById("mapFrame").src = searchUrl;
-    if (element) {
-        document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('active'));
-        element.classList.add('active');
-    }
+/* ===== 行程顯示 ===== */
+
+function getSchedule(day){
+ return [
+  ...CONFIG.defaultSchedule.filter(s=>s.day===day),
+  ...userSpots.filter(s=>s.day===day)
+ ];
 }
 
-function changeDay(step) {
-    const newDay = currentDay + step;
-    if (newDay >= 1 && newDay <= CONFIG.tripDays) {
-        currentDay = newDay;
-        updateUI();
-    }
+function updateUI(){
+ document.getElementById("dayDisplay").innerText="第 "+currentDay+" 天";
+ document.getElementById("dayTitle").innerText="Day "+currentDay;
+
+ const spots=getSchedule(currentDay);
+
+ let html="";
+ spots.forEach(s=>{
+  html+=`${s.title}
+  ${s.id?`<button class="delete" onclick="deleteSpot(${s.id})">✕</button>`:""}
+  <br>`;
+ });
+
+ document.getElementById("schedule").innerHTML=html;
+
+ if(spots.length>0){
+  document.getElementById("mapFrame").src=
+  `https://www.google.com/maps?q=${encodeURIComponent(spots[0].loc)}&z=15&output=embed`;
+ }
+
+ renderExpenses();
 }
 
-/* ===== 記帳與清單 (功能同前版) ===== */
-function addExpense() {
-    const name = document.getElementById("expenseName").value;
-    const amount = parseInt(document.getElementById("expenseAmount").value);
-    if (!name || isNaN(amount)) return;
-    expenses.push({ id: Date.now(), day: currentDay, name, amount });
-    localStorage.setItem("expenses", JSON.stringify(expenses));
-    document.getElementById("expenseName").value = "";
-    document.getElementById("expenseAmount").value = "";
-    renderExpenses();
+function changeDay(step){
+ const newDay=currentDay+step;
+ if(newDay>=1&&newDay<=CONFIG.tripDays){
+  currentDay=newDay;
+  updateUI();
+ }
 }
 
-function deleteExpense(id) {
-    expenses = expenses.filter(e => e.id !== id);
-    localStorage.setItem("expenses", JSON.stringify(expenses));
-    renderExpenses();
+/* ===== 新增景點 ===== */
+
+function addSpot(){
+ const day=parseInt(newSpotDay.value);
+ const title=newSpotTitle.value;
+ const loc=newSpotLoc.value;
+ if(!day||!title||!loc) return;
+
+ userSpots.push({id:Date.now(),day,title,loc});
+ localStorage.setItem("userSpots",JSON.stringify(userSpots));
+
+ newSpotDay.value="";
+ newSpotTitle.value="";
+ newSpotLoc.value="";
+
+ updateUI();
 }
 
-function renderExpenses() {
-    const listEl = document.getElementById("expenseList");
-    const todayExpenses = expenses.filter(e => e.day === currentDay);
-    listEl.innerHTML = todayExpenses.length === 0 ? `<div style="color:#999;text-align:center;font-size:13px">今日尚無紀錄</div>` : 
-        todayExpenses.map(e => `
-            <div class="expense-item">
-                <span>${e.name} (¥${e.amount})</span>
-                <span><b>NT$${Math.round(e.amount * CONFIG.jpyRate)}</b> 
-                <button style="background:none; color:red; border:none; padding:0 5px;" onclick="deleteExpense(${e.id})">✕</button></span>
-            </div>
-        `).join("");
-    updateChart();
+function deleteSpot(id){
+ userSpots=userSpots.filter(s=>s.id!==id);
+ localStorage.setItem("userSpots",JSON.stringify(userSpots));
+ updateUI();
 }
 
-function updateChart() {
-    const ctx = document.getElementById("expenseChart").getContext("2d");
-    const totals = Array(CONFIG.tripDays).fill(0);
-    expenses.forEach(e => { if(e.day <= CONFIG.tripDays) totals[e.day-1] += e.amount; });
-    if (chartInstance) chartInstance.destroy();
-    chartInstance = new Chart(ctx, {
-        type: "bar",
-        data: {
-            labels: ["D1", "D2", "D3", "D4", "D5", "D6"],
-            datasets: [{ label: "支出(JPY)", data: totals, backgroundColor: "#007aff", borderRadius: 5 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
+/* ===== 記帳 ===== */
+
+function addExpense(){
+ const name=expenseName.value;
+ const amount=parseInt(expenseAmount.value);
+ if(!name||!amount) return;
+
+ expenses.push({id:Date.now(),day:currentDay,name,amount});
+ localStorage.setItem("expenses",JSON.stringify(expenses));
+
+ expenseName.value="";
+ expenseAmount.value="";
+ renderExpenses();
 }
 
-function renderPacking() {
-    const container = document.getElementById("packingList");
-    container.innerHTML = CONFIG.packingItems.map(item => `
-        <div class="packing-item ${packingStatus[item] ? 'checked' : ''}" onclick="toggleItem('${item}')">
-            <input type="checkbox" ${packingStatus[item] ? 'checked' : ''}>
-            <span>${item}</span>
-        </div>
-    `).join("");
+function renderExpenses(){
+ const today=expenses.filter(e=>e.day===currentDay);
+ let html="";
+ let totals=Array(CONFIG.tripDays).fill(0);
+
+ today.forEach(e=>{
+  html+=`<div class="expense-item">
+  ${e.name} ¥${e.amount}
+  <button class="delete" onclick="deleteExpense(${e.id})">✕</button>
+  </div>`;
+ });
+
+ expenses.forEach(e=>totals[e.day-1]+=e.amount);
+
+ document.getElementById("expenseList").innerHTML=html;
+ updateChart(totals);
 }
 
-function toggleItem(item) {
-    packingStatus[item] = !packingStatus[item];
-    localStorage.setItem("packingStatus", JSON.stringify(packingStatus));
-    renderPacking();
+function deleteExpense(id){
+ expenses=expenses.filter(e=>e.id!==id);
+ localStorage.setItem("expenses",JSON.stringify(expenses));
+ renderExpenses();
 }
+
+function updateChart(data){
+ if(chart) chart.destroy();
+ chart=new Chart(document.getElementById("expenseChart"),{
+  type:"bar",
+  data:{
+   labels:["D1","D2","D3","D4","D5","D6"],
+   datasets:[{label:"每日花費(¥)",data:data,backgroundColor:"#007aff"}]
+  }
+ });
+}
+
+/* ===== 行李清單 ===== */
+
+function renderPacking(){
+ let html="";
+ CONFIG.packingItems.forEach(item=>{
+  const checked=packingStatus[item]?"checked":"";
+  html+=`<div class="packing-item ${checked? "checked":""}">
+  <input type="checkbox" ${checked} onchange="toggleItem('${item}')">
+  ${item}
+  </div>`;
+ });
+ packingList.innerHTML=html;
+}
+
+function toggleItem(item){
+ packingStatus[item]=!packingStatus[item];
+ localStorage.setItem("packingStatus",JSON.stringify(packingStatus));
+ renderPacking();
+}
+
+/* ===== 倒數 ===== */
+
+function updateCountdown(){
+ const now=new Date();
+ const diff=CONFIG.tripStart-now;
+ if(diff>0){
+  const days=Math.floor(diff/(1000*60*60*24));
+  countdown.innerText="✈️ 距離出發 "+days+" 天";
+ }else{
+  countdown.innerText="🎉 旅程進行中";
+ }
+}
+
 </script>
-
 </body>
 </html>
