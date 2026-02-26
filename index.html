@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>京阪名親子遊助手 V6 (修正版)</title>
+    <title>京阪名親子遊助手 V7 (全刪除支援版)</title>
     <style>
         :root {
             --primary: #007aff;
@@ -41,15 +41,18 @@
             position: relative; transition: 0.2s;
         }
         .schedule-item.active { border-color: var(--primary); background: #f0f7ff; }
+        /* 標示自訂行程與預設行程的區別 */
         .schedule-item.custom { border-left: 4px solid var(--accent); }
+        
         .schedule-time { font-size: 0.75rem; color: var(--primary); font-weight: bold; min-width: 45px; margin-top: 3px; }
         .schedule-text { font-size: 0.95rem; font-weight: 600; flex: 1; padding-right: 25px; }
         .schedule-sub { font-size: 0.8rem; color: var(--gray); margin-top: 2px; font-weight: normal; }
 
         .del-item {
-            position: absolute; right: 10px; top: 12px; color: var(--danger);
-            font-size: 1.2rem; padding: 5px; cursor: pointer; z-index: 10;
+            position: absolute; right: 8px; top: 12px; color: var(--danger);
+            font-size: 1.1rem; padding: 5px; cursor: pointer; z-index: 10; opacity: 0.6;
         }
+        .del-item:hover { opacity: 1; }
 
         .add-form { display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
         .add-form input { width: 100%; margin-bottom: 8px; box-sizing: border-box; padding: 10px; border: 1px solid #ddd; border-radius: 10px;}
@@ -60,7 +63,7 @@
         .nav-btns { display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; }
         button { padding: 12px; border: none; border-radius: 12px; background: var(--primary); color: white; font-weight: 600; cursor: pointer; }
         button.secondary { background: #e5e5ea; color: var(--text); }
-        button.danger-link { background: none; color: var(--danger); font-size: 0.75rem; text-decoration: underline; margin-top: 10px; width: 100%; }
+        button.action-link { background: none; color: var(--primary); font-size: 0.75rem; text-decoration: underline; margin-top: 10px; width: 100%; }
 
         .packing-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f9f9f9; cursor: pointer; }
         .checked { text-decoration: line-through; color: var(--gray); }
@@ -81,18 +84,21 @@
     
     <ul id="scheduleList" class="schedule-list"></ul>
     
-    <button class="secondary" style="width:100%; margin-top: 10px; font-size: 0.9rem;" onclick="toggleAddForm()">＋新增自訂行程</button>
+    <button class="secondary" style="width:100%; margin-top: 10px; font-size: 0.9rem;" onclick="toggleAddForm()">管理行程 (新增/重置)</button>
     
     <div id="addForm" class="add-form">
+        <label style="font-size:0.75rem; color:var(--gray)">新增自訂景點：</label>
         <input id="newTime" type="time" value="12:00">
-        <input id="newTitle" placeholder="景點名稱 (例如：阿倍野展望台)">
-        <button style="width:100%; background: var(--accent);" onclick="addCustomItem()">確定新增</button>
-        <button class="danger-link" onclick="clearDayCustom()">重設並清除當日所有自訂行程</button>
+        <input id="newTitle" placeholder="景點或餐廳名稱">
+        <button style="width:100%; background: var(--accent); margin-bottom:15px;" onclick="addCustomItem()">確定新增</button>
+        
+        <hr style="border:0; border-top:1px solid #eee">
+        <button class="action-link" onclick="restoreDefaultSchedule()">恢復當日原始預設行程</button>
     </div>
 
     <div class="nav-btns">
-        <button class="secondary" onclick="changeDay(-1)">←</button>
-        <button onclick="changeDay(1)">→</button>
+        <button class="secondary" onclick="changeDay(-1)">← 上一天</button>
+        <button onclick="changeDay(1)">下一天 →</button>
     </div>
 </div>
 
@@ -102,38 +108,37 @@
 </div>
 
 <script>
-const CONFIG = {
-    tripStart: new Date("2026-03-11T00:00:00"),
-    tripDays: 6,
-    baseSchedule: [
-        { date: "3月11日", city: "Osaka", lat: 34.69, lon: 135.50, items: [
-            { time: "06:55", icon: "✈️", title: "虎航 IT284", sub: "高雄-關西 KIX", loc: "Kansai International Airport" },
-            { time: "14:00", icon: "🏨", title: "大阪龍仕柏飯店", sub: "Hotel Hankyu RESPIRE", loc: "Hotel Hankyu RESPIRE OSAKA" },
-            { time: "16:00", icon: "🌅", title: "梅田空中庭園", sub: "5歲小孩也適合的夜景", loc: "Umeda Sky Building" },
-            { time: "17:30", icon: "🛍️", title: "大丸百貨梅田店", sub: "13F 寶可夢中心", loc: "Daimaru Umeda" }
-        ]},
-        { date: "3月12日", city: "Osaka", lat: 34.69, lon: 135.50, items: [
-            { time: "10:00", icon: "🐠", title: "海遊館", sub: "看鯨鯊、觸摸池", loc: "Osaka Kaiyukan Aquarium" },
-            { time: "12:30", icon: "🍱", title: "天保山購物中心", sub: "午餐推薦：浪花美食橫丁", loc: "Tempozan Marketplace" },
-            { time: "17:00", icon: "🧸", title: "Yodobashi 5F", sub: "巨大玩具區與扭蛋", loc: "Links Umeda" }
-        ]},
-        { date: "3月13日", city: "Nagoya", lat: 35.18, lon: 136.90, items: [{ time: "10:00", icon: "🚄", title: "名古屋移動日", sub: "新幹線", loc: "Nagoya Station" }]},
-        { date: "3月14日", city: "Nagoya", lat: 35.18, lon: 136.90, items: [{ time: "10:00", icon: "🌳", title: "吉卜力公園", sub: "宮崎駿世界", loc: "Ghibli Park" }]},
-        { date: "3月15日", city: "Nagoya", lat: 35.18, lon: 136.90, items: [{ time: "10:00", icon: "🚂", title: "磁浮鐵道館", sub: "新幹線展覽", loc: "SCMAGLEV and Railway Park" }]},
-        { date: "3月16日", city: "Nagoya", lat: 35.18, lon: 136.90, items: [{ time: "09:30", icon: "🤖", title: "樂高樂園", sub: "最後衝刺", loc: "LEGOLAND Japan" }]}
-    ]
-};
+// 原始固定行程資料
+const DEFAULT_SCHEDULE = [
+    { date: "3月11日", city: "Osaka", lat: 34.69, lon: 135.50, items: [
+        { id: "base1_1", time: "06:55", icon: "✈️", title: "虎航 IT284", sub: "高雄-關西 KIX", loc: "Kansai International Airport" },
+        { id: "base1_2", time: "14:00", icon: "🏨", title: "大阪龍仕柏飯店", sub: "Hotel Hankyu RESPIRE", loc: "Hotel Hankyu RESPIRE OSAKA" },
+        { id: "base1_3", time: "16:00", icon: "🌅", title: "梅田空中庭園", sub: "5歲小孩也適合的夜景", loc: "Umeda Sky Building" },
+        { id: "base1_4", time: "17:30", icon: "🛍️", title: "大丸百貨梅田店", sub: "13F 寶可夢中心", loc: "Daimaru Umeda" }
+    ]},
+    { date: "3月12日", city: "Osaka", lat: 34.69, lon: 135.50, items: [
+        { id: "base2_1", time: "10:00", icon: "🐠", title: "海遊館", sub: "看鯨鯊、觸摸池", loc: "Osaka Kaiyukan Aquarium" },
+        { id: "base2_2", time: "12:30", icon: "🍱", title: "天保山購物中心", sub: "午餐推薦：浪花美食橫丁", loc: "Tempozan Marketplace" },
+        { id: "base2_3", time: "17:00", icon: "🧸", title: "Yodobashi 5F", sub: "巨大玩具區與扭蛋", loc: "Links Umeda" }
+    ]},
+    { date: "3月13日", city: "Nagoya", lat: 35.18, lon: 136.90, items: [{ id: "base3_1", time: "10:00", icon: "🚄", title: "名古屋移動日", sub: "新幹線", loc: "Nagoya Station" }]},
+    { date: "3月14日", city: "Nagoya", lat: 35.18, lon: 136.90, items: [{ id: "base4_1", time: "10:00", icon: "🌳", title: "吉卜力公園", sub: "宮崎駿世界", loc: "Ghibli Park" }]},
+    { date: "3月15日", city: "Nagoya", lat: 35.18, lon: 136.90, items: [{ id: "base5_1", time: "10:00", icon: "🚂", title: "磁浮鐵道館", sub: "新幹線展覽", loc: "SCMAGLEV and Railway Park" }]},
+    { date: "3月16日", city: "Nagoya", lat: 35.18, lon: 136.90, items: [{ id: "base6_1", time: "09:30", icon: "🤖", title: "樂高樂園", sub: "最後衝刺", loc: "LEGOLAND Japan" }]}
+];
 
 let currentDay = 1;
-let customItems = JSON.parse(localStorage.getItem("customSchedule")) || {};
+// 從瀏覽器讀取「目前行程狀態」，若沒有則初始化為原始行程
+let activeSchedule = JSON.parse(localStorage.getItem("activeSchedule")) || JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
 let packingStatus = JSON.parse(localStorage.getItem("packingStatus")) || {};
 
 window.onload = () => { initDay(); updateUI(); renderPacking(); };
 
 function initDay() {
-    const diff = new Date() - CONFIG.tripStart;
+    const tripStart = new Date("2026-03-11T00:00:00");
+    const diff = new Date() - tripStart;
     const day = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
-    currentDay = (day > 0 && day <= CONFIG.tripDays) ? day : 1;
+    currentDay = (day > 0 && day <= 6) ? day : 1;
 }
 
 async function fetchWeather(lat, lon, city) {
@@ -143,59 +148,81 @@ async function fetchWeather(lat, lon, city) {
         const data = await res.json();
         const temp = Math.round(data.current_weather.temperature);
         const code = data.current_weather.weathercode;
-        const weatherMap = { 0: "☀️ 晴朗", 1: "🌤️ 晴間多雲", 2: "⛅ 多雲", 3: "☁️ 陰天", 45: "🌫️ 有霧", 61: "🌧️ 小雨", 63: "🌧️ 雨" };
+        const weatherMap = { 0: "☀️ 晴朗", 1: "🌤️ 晴多雲", 2: "⛅ 多雲", 3: "☁️ 陰天", 61: "🌧️ 小雨", 63: "🌧️ 雨" };
         display.innerHTML = `📍 ${city === 'Osaka' ? '大阪' : '名古屋'}：${temp}°C | ${weatherMap[code] || "🌤️ 良好"}`;
-    } catch (e) { display.innerHTML = "❌ 天氣更新失敗"; }
+    } catch (e) { display.innerHTML = "❌ 天氣更新中"; }
 }
 
 function updateUI() {
-    const dayData = CONFIG.baseSchedule[currentDay - 1];
+    const dayData = activeSchedule[currentDay - 1];
     document.getElementById("dayDisplay").innerText = `第 ${currentDay} 天`;
     document.getElementById("dateDisplay").innerText = dayData.date;
     fetchWeather(dayData.lat, dayData.lon, dayData.city);
 
-    let dayCustom = customItems[currentDay] || [];
-    let combinedItems = [...dayData.items, ...dayCustom].sort((a,b) => a.time.localeCompare(b.time));
+    // 排序行程
+    dayData.items.sort((a,b) => a.time.localeCompare(b.time));
 
     const listEl = document.getElementById("scheduleList");
-    listEl.innerHTML = combinedItems.map((item) => `
-        <li class="schedule-item ${item.isCustom ? 'custom' : ''}" onclick="setMap('${item.loc || item.title}', this)">
-            <div class="schedule-time">${item.time}</div>
-            <span class="schedule-icon">${item.icon || '📍'}</span>
-            <div class="schedule-text">
-                <div>${item.title}</div>
-                ${item.sub ? `<div class="schedule-sub">${item.sub}</div>` : ''}
-            </div>
-            ${item.isCustom ? `<span class="del-item" onclick="deleteCustomItem('${item.id}', '${item.time}', '${item.title}', event)">✕</span>` : ''}
-        </li>
-    `).join("");
+    listEl.innerHTML = dayData.items.length === 0 ? 
+        `<div style="text-align:center;color:#999;padding:20px;">今日暫無行程</div>` :
+        dayData.items.map((item) => `
+            <li class="schedule-item ${item.isCustom ? 'custom' : ''}" onclick="setMap('${item.loc || item.title}', this)">
+                <div class="schedule-time">${item.time}</div>
+                <span class="schedule-icon">${item.icon || '📍'}</span>
+                <div class="schedule-text">
+                    <div>${item.title}</div>
+                    ${item.sub ? `<div class="schedule-sub">${item.sub}</div>` : ''}
+                </div>
+                <span class="del-item" onclick="deleteAnyItem('${item.id}', event)">✕</span>
+            </li>
+        `).join("");
 
-    if (combinedItems.length > 0) setMap(combinedItems[0].loc || combinedItems[0].title);
+    if (dayData.items.length > 0) setMap(dayData.items[0].loc || dayData.items[0].title);
 }
 
-// 修正後的刪除函數：支援多重條件比對
-function deleteCustomItem(id, time, title, event) {
+// 刪除任何行程 (包含預設與自訂)
+function deleteAnyItem(id, event) {
     event.stopPropagation();
-    if(!confirm("確定要刪除這項自訂行程嗎？")) return;
+    if(!confirm("確定要刪除這項行程嗎？")) return;
     
-    // 比對 ID 或比對 (時間+標題)
-    customItems[currentDay] = (customItems[currentDay] || []).filter(item => {
-        return item.id !== id && !(item.time === time && item.title === title);
-    });
-    
-    localStorage.setItem("customSchedule", JSON.stringify(customItems));
+    activeSchedule[currentDay - 1].items = activeSchedule[currentDay - 1].items.filter(item => item.id !== id);
+    saveData();
     updateUI();
 }
 
-// 強制重設當日功能
-function clearDayCustom() {
-    if(!confirm("這將清除今日「所有」自行新增的行程，確定嗎？")) return;
-    delete customItems[currentDay];
-    localStorage.setItem("customSchedule", JSON.stringify(customItems));
+// 恢復當日原始預設行程
+function restoreDefaultSchedule() {
+    if(!confirm("這將會找回這一天原本預設的所有景點，確定嗎？")) return;
+    activeSchedule[currentDay - 1].items = JSON.parse(JSON.stringify(DEFAULT_SCHEDULE[currentDay - 1].items));
+    saveData();
     updateUI();
     toggleAddForm();
 }
 
+function addCustomItem() {
+    const time = document.getElementById("newTime").value;
+    const title = document.getElementById("newTitle").value;
+    if(!title) return;
+
+    activeSchedule[currentDay - 1].items.push({ 
+        id: "custom_" + Date.now(), 
+        time, 
+        title, 
+        isCustom: true,
+        icon: "⭐️"
+    });
+    
+    saveData();
+    document.getElementById("newTitle").value = "";
+    toggleAddForm();
+    updateUI();
+}
+
+function saveData() {
+    localStorage.setItem("activeSchedule", JSON.stringify(activeSchedule));
+}
+
+/* ===== 其他基礎功能 ===== */
 function setMap(location, element) {
     const searchUrl = `https://maps.google.com/maps?q=${encodeURIComponent(location)}&output=embed`;
     document.getElementById("mapFrame").src = searchUrl;
@@ -207,25 +234,7 @@ function setMap(location, element) {
 
 function changeDay(step) {
     const newDay = currentDay + step;
-    if (newDay >= 1 && newDay <= CONFIG.tripDays) { currentDay = newDay; updateUI(); }
-}
-
-function addCustomItem() {
-    const time = document.getElementById("newTime").value;
-    const title = document.getElementById("newTitle").value;
-    if(!title) return;
-    if(!customItems[currentDay]) customItems[currentDay] = [];
-    customItems[currentDay].push({ 
-        id: "ID_" + Date.now(), // 增加前綴避免純數字問題
-        time, 
-        title, 
-        isCustom: true,
-        icon: "⭐️"
-    });
-    localStorage.setItem("customSchedule", JSON.stringify(customItems));
-    document.getElementById("newTitle").value = "";
-    toggleAddForm();
-    updateUI();
+    if (newDay >= 1 && newDay <= 6) { currentDay = newDay; updateUI(); }
 }
 
 function toggleAddForm() {
