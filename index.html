@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>京阪名親子遊助手 V9</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-dark: #1d4ed8;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --accent: #10b981;
+            --accent-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --border: #e2e8f0;
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
+            --transition: 0.18s ease;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 48px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: linear-gradient(135deg, #1d4ed8 0%, #4f46e5 60%, #7c3aed 100%);
+            color: white;
+            padding: 22px 18px 18px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(37,99,235,0.3);
+        }
+        .header h2 { margin: 0; font-size: 1.4rem; font-weight: 700; letter-spacing: 0.02em; }
+        .header-date { font-size: 0.88rem; opacity: 0.85; margin-top: 2px; }
+        .weather-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.18);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 100px;
+            padding: 6px 14px;
+            margin-top: 12px;
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+        .weather-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.85); }
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--card-bg);
+            margin: 14px 12px;
+            padding: 18px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        h3 {
+            margin: 0 0 16px;
+            color: var(--primary);
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        /* ── Map ── */
+        .map-container {
+            width: 100%;
+            height: 220px;
+            margin-bottom: 16px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: var(--bg);
+            box-shadow: var(--shadow-sm);
+        }
+        .map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        /* ── Schedule List ── */
+        .schedule-list { list-style: none; padding: 0; margin: 0; }
+
+        .schedule-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+            background: #f8fafc;
+            border: 2px solid transparent;
+            cursor: pointer;
+            position: relative;
+            transition: background var(--transition), border-color var(--transition), transform var(--transition);
+        }
+        .schedule-item:hover { background: #f1f5f9; transform: translateX(2px); }
+        .schedule-item.active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        .schedule-item.custom {
+            border-left: 4px solid var(--accent);
+        }
+        .schedule-item.custom.active {
+            border-left: 4px solid var(--accent);
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .schedule-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
+        .schedule-time {
+            font-size: 0.7rem;
+            color: var(--primary);
+            font-weight: 700;
+            min-width: 82px;
+            flex-shrink: 0;
+            margin-top: 4px;
+            letter-spacing: 0.01em;
+        }
+        .schedule-body { flex: 1; min-width: 0; padding-right: 24px; }
+        .schedule-title { font-size: 0.93rem; font-weight: 700; line-height: 1.3; }
+        .schedule-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+        .del-btn {
+            position: absolute;
+            right: 8px; top: 50%;
+            transform: translateY(-50%);
+            width: 24px; height: 24px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            background: none;
+            color: var(--danger);
+            font-size: 0.75rem;
+            padding: 0;
+            opacity: 0;
+            transition: opacity var(--transition), background var(--transition);
+            cursor: pointer;
+            border: none;
+        }
+        .schedule-item:hover .del-btn { opacity: 0.7; }
+        .del-btn:hover { opacity: 1 !important; background: var(--danger-light); }
+
+        /* ── Manage form ── */
+        .manage-toggle {
+            width: 100%;
+            margin-top: 12px;
+            padding: 11px;
+            font-size: 0.88rem;
+            background: #f1f5f9;
+            color: var(--text-muted);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .manage-toggle:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+
+        .add-form {
+            display: none;
+            margin-top: 14px;
+            padding: 14px;
+            background: #f8fafc;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+        .add-form label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 8px; }
+        .add-form input {
+            width: 100%;
+            margin-bottom: 8px;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: white;
+            transition: border-color var(--transition);
+            outline: none;
+        }
+        .add-form input:focus { border-color: var(--primary); }
+
+        .btn-add {
+            width: 100%;
+            padding: 11px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background var(--transition);
+        }
+        .btn-add:hover { background: #059669; }
+        .btn-restore {
+            width: 100%;
+            padding: 9px;
+            background: none;
+            color: var(--danger);
+            border: 1.5px solid var(--danger);
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background var(--transition);
+        }
+        .btn-restore:hover { background: var(--danger-light); }
+
+        /* ── Nav ── */
+        .nav-btns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .btn-nav {
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform var(--transition), opacity var(--transition);
+        }
+        .btn-nav:active { transform: scale(0.97); }
+        .btn-nav.prev { background: #f1f5f9; color: var(--text-muted); }
+        .btn-nav.next { background: var(--primary); color: white; }
+        .btn-nav:disabled { opacity: 0.35; cursor: default; }
+
+        /* ── Day progress indicator ── */
+        .day-dots {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 12px;
+        }
+        .day-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.35);
+            transition: background var(--transition), transform var(--transition);
+        }
+        .day-dot.active { background: white; transform: scale(1.3); }
+
+        /* ── Packing list ── */
+        .packing-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 4px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: opacity var(--transition);
+            gap: 12px;
+        }
+        .packing-item:last-child { border-bottom: none; }
+        .packing-item:active { opacity: 0.7; }
+
+        .packing-check {
+            width: 22px; height: 22px;
+            border-radius: 6px;
+            border: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .packing-item.done .packing-check {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        .packing-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color var(--transition);
+        }
+        .packing-item.done .packing-label {
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center;
+            padding: 28px 16px;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+        }
+        .empty-state .icon { font-size: 2rem; margin-bottom: 8px; }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            bottom: 24px; left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #0f172a;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.25s, transform 0.25s;
+            pointer-events: none;
+            z-index: 999;
+            white-space: nowrap;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h2 id="dayDisplay">Day 1</h2>
+    <div id="dateDisplay" class="header-date">3月11日</div>
+    <div id="weatherDisplay" class="weather-badge">
+        <span class="weather-dot"></span>
+        <span>天氣載入中…</span>
+    </div>
+    <div class="day-dots" id="dayDots"></div>
+</div>
+
+<div class="card">
+    <div class="map-container">
+        <iframe id="mapFrame" title="地圖" loading="lazy"></iframe>
+    </div>
+
+    <ul id="scheduleList" class="schedule-list"></ul>
+
+    <button class="manage-toggle" id="toggleBtn" onclick="App.toggleAddForm()">＋ 管理行程（新增 / 重置）</button>
+
+    <div id="addForm" class="add-form">
+        <label>新增自訂景點</label>
+        <input id="newTime" type="time" value="12:00">
+        <input id="newTitle" placeholder="景點或餐廳名稱" maxlength="40">
+        <button class="btn-add" onclick="App.addCustomItem()">✓ 確定新增</button>
+        <button class="btn-restore" onclick="App.restoreDefault()">↺ 恢復當日原始預設行程</button>
+    </div>
+
+    <div class="nav-btns">
+        <button class="btn-nav prev" id="prevBtn" onclick="App.changeDay(-1)">← 上一天</button>
+        <button class="btn-nav next" id="nextBtn" onclick="App.changeDay(1)">下一天 →</button>
+    </div>
+</div>
+
+<div class="card">
+    <h3>🧳 必備物資確認</h3>
+    <div id="packingList"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────
+//  資料層（純資料，與 UI 完全分離）
+// ─────────────────────────────────────────
+const TRIP_START = new Date("2026-03-11T00:00:00");
+const TOTAL_DAYS = 6;
+
+const DEFAULT_SCHEDULE = [
+    { date: "3月11日", city: "大阪", lat: 34.69, lon: 135.50, items: [
+        { id: "d1_1", time: "06:55", icon: "✈️", title: "虎航 IT284", sub: "高雄→關西 KIX", loc: "Kansai International Airport" },
+        { id: "d1_2", time: "14:00", icon: "🏨", title: "大阪龍仕柏飯店", sub: "Hotel Hankyu RESPIRE", loc: "Hotel Hankyu RESPIRE OSAKA" },
+        { id: "d1_3", time: "16:00", icon: "🌅", title: "梅田空中庭園", sub: "夜景行程", loc: "Umeda Sky Building" }
+    ]},
+    { date: "3月12日", city: "大阪", lat: 34.69, lon: 135.50, items: [
+        { id: "d2_1", time: "10:00", icon: "🐠", title: "海遊館", sub: "看鯨鯊", loc: "Osaka Kaiyukan Aquarium" },
+        { id: "d2_2", time: "12:30", icon: "🍱", title: "天保山購物中心", sub: "浪花美食橫丁", loc: "Tempozan Marketplace" }
+    ]},
+    { date: "3月13日", city: "名古屋", lat: 35.18, lon: 136.90, items: [
+        { id: "d3_1", time: "09:30", icon: "🚄", title: "大阪 → 名古屋", sub: "搭乘新幹線移動", loc: "Nagoya Station" },
+        { id: "d3_2", time: "11:30", icon: "🏨", title: "飯店寄行李", sub: "名古屋站西側", loc: "Nagoya Station West Exit" },
+        { id: "d3_3", time: "12:45", icon: "🍱", title: "午餐時間", sub: "矢場豬排 或 棊子麵", loc: "矢場とん 名古屋駅" },
+        { id: "d3_4", time: "14:30", icon: "🛍️", title: "戰區：榮商圈", sub: "松坂屋寶可夢中心 / PARCO", loc: "Matsuzakaya Nagoya" },
+        { id: "d3_5", time: "17:00", icon: "🗼", title: "綠洲 21", sub: "久屋大通公園 / 電視塔點燈", loc: "Oasis 21" },
+        { id: "d3_6", time: "18:30", icon: "🍽️", title: "晚餐時間", sub: "名鐵鰻魚飯 或 風來坊雞翅", loc: "Meitetsu Department Store" },
+        { id: "d3_7", time: "20:30", icon: "🏪", title: "回飯店 / 補貨", sub: "B1 藥妝店或超商", loc: "Nagoya Station" }
+    ]},
+    { date: "3月14日", city: "名古屋", lat: 35.18, lon: 136.90, items: [
+        { id: "d4_1", time: "10:00", icon: "🌳", title: "吉卜力公園", sub: "宮崎駿世界", loc: "Ghibli Park" }
+    ]},
+    { date: "3月15日", city: "名古屋", lat: 35.18, lon: 136.90, items: [
+        { id: "d5_1", time: "10:00", icon: "🚂", title: "磁浮鐵道館", sub: "新幹線展覽", loc: "SCMAGLEV and Railway Park" }
+    ]},
+    { date: "3月16日", city: "名古屋", lat: 35.18, lon: 136.90, items: [
+        { id: "d6_1", time: "09:30", icon: "🤖", title: "樂高樂園", sub: "親子最後衝刺", loc: "LEGOLAND Japan" }
+    ]}
+];
+
+const PACKING_ITEMS = ["護照／簽證", "日幣現金／卡片", "小孩備用藥", "行動電源", "尿布／濕紙巾", "雨具／外套"];
+
+// ─────────────────────────────────────────
+//  工具函式
+// ─────────────────────────────────────────
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = String(str);
+    return div.innerHTML;
+}
+
+function storageGet(key, fallback = null) {
+    try {
+        const v = localStorage.getItem(key);
+        return v !== null ? JSON.parse(v) : fallback;
+    } catch { return fallback; }
+}
+function storageSet(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
+
+let toastTimer = null;
+function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ─────────────────────────────────────────
+//  天氣快取（避免重複 API 呼叫）
+// ─────────────────────────────────────────
+const weatherCache = {};
+const WEATHER_LABEL = { 0:"☀️ 晴朗", 1:"🌤️ 晴多雲", 2:"⛅ 多雲", 3:"☁️ 陰天", 61:"🌧️ 小雨", 63:"🌧️ 中雨", 80:"🌦️ 陣雨" };
+
+async function fetchWeather(lat, lon, city) {
+    const key = `${lat},${lon}`;
+    const display = document.getElementById('weatherDisplay');
+
+    if (weatherCache[key]) {
+        renderWeather(display, weatherCache[key], city);
+        return;
+    }
+    try {
+        const res = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=Asia%2FTokyo`
+        );
+        if (!res.ok) throw new Error('Network error');
+        const data = await res.json();
+        weatherCache[key] = data.current_weather;
+        renderWeather(display, data.current_weather, city);
+    } catch {
+        display.innerHTML = `<span class="weather-dot" style="background:#f87171"></span><span>天氣暫時無法取得</span>`;
+    }
+}
+function renderWeather(el, w, city) {
+    const temp = Math.round(w.temperature);
+    const label = WEATHER_LABEL[w.weathercode] ?? "🌤️ 良好";
+    el.innerHTML = `<span class="weather-dot"></span><span>${city}・${temp}°C・${label}</span>`;
+}
+
+// ─────────────────────────────────────────
+//  地圖（防抖避免快速切換重複載入）
+// ─────────────────────────────────────────
+let mapDebounce = null;
+function setMap(location, activeEl) {
+    // 更新 active 樣式
+    document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('active'));
+    if (activeEl) activeEl.classList.add('active');
+
+    clearTimeout(mapDebounce);
+    mapDebounce = setTimeout(() => {
+        document.getElementById('mapFrame').src =
+            `https://maps.google.com/maps?q=${encodeURIComponent(location)}&output=embed`;
+    }, 280);
+}
+
+// ─────────────────────────────────────────
+//  主應用程式物件（封裝所有狀態與邏輯）
+// ─────────────────────────────────────────
+const App = {
+    currentDay: 1,
+    schedule: storageGet('activeSchedule', JSON.parse(JSON.stringify(DEFAULT_SCHEDULE))),
+    packingStatus: storageGet('packingStatus', {}),
+
+    init() {
+        this.currentDay = storageGet('lastDay', this._calcTodayDay());
+        this.renderDots();
+        this.updateUI();
+        this.renderPacking();
+    },
+
+    _calcTodayDay() {
+        const diff = Date.now() - TRIP_START.getTime();
+        const day = Math.floor(diff / 86400000) + 1;
+        return (day >= 1 && day <= TOTAL_DAYS) ? day : 1;
+    },
+
+    save() {
+        storageSet('activeSchedule', this.schedule);
+        storageSet('lastDay', this.currentDay);
+    },
+
+    // ── 渲染日期進度圓點 ──
+    renderDots() {
+        const container = document.getElementById('dayDots');
+        container.innerHTML = Array.from({ length: TOTAL_DAYS }, (_, i) =>
+            `<div class="day-dot ${i + 1 === this.currentDay ? 'active' : ''}"></div>`
+        ).join('');
+    },
+
+    // ── 主畫面更新 ──
+    updateUI() {
+        const dayData = this.schedule[this.currentDay - 1];
+
+        document.getElementById('dayDisplay').textContent = `第 ${this.currentDay} 天`;
+        document.getElementById('dateDisplay').textContent = dayData.date;
+
+        // 按時間排序
+        dayData.items.sort((a, b) => a.time.localeCompare(b.time));
+
+        // 導航按鈕狀態
+        document.getElementById('prevBtn').disabled = this.currentDay <= 1;
+        document.getElementById('nextBtn').disabled = this.currentDay >= TOTAL_DAYS;
+
+        // 更新圓點
+        document.querySelectorAll('.day-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i + 1 === this.currentDay);
+        });
+
+        // 天氣（非同步）
+        fetchWeather(dayData.lat, dayData.lon, dayData.city);
+
+        // 渲染清單
+        const listEl = document.getElementById('scheduleList');
+        if (dayData.items.length === 0) {
+            listEl.innerHTML = `<div class="empty-state"><div class="icon">📭</div>今天還沒有行程<br>點下方按鈕新增吧！</div>`;
+            document.getElementById('mapFrame').src = '';
+        } else {
+            // 使用 DocumentFragment 批次 DOM 操作，避免多次 reflow
+            const frag = document.createDocumentFragment();
+            dayData.items.forEach((item, idx) => {
+                const li = document.createElement('li');
+                li.className = `schedule-item${item.isCustom ? ' custom' : ''}`;
+                li.dataset.loc = item.loc || item.title;
+                li.dataset.id = item.id;
+
+                li.innerHTML = `
+                    <span class="schedule-icon">${escapeHtml(item.icon || '📍')}</span>
+                    <div class="schedule-time">${escapeHtml(item.time)}</div>
+                    <div class="schedule-body">
+                        <div class="schedule-title">${escapeHtml(item.title)}</div>
+                        ${item.sub ? `<div class="schedule-sub">${escapeHtml(item.sub)}</div>` : ''}
+                    </div>
+                    <button class="del-btn" data-id="${escapeHtml(item.id)}" aria-label="刪除">✕</button>
+                `;
+                frag.appendChild(li);
+
+                // 預設選中第一項
+                if (idx === 0) li.classList.add('active');
+            });
+            listEl.innerHTML = '';
+            listEl.appendChild(frag);
+
+            // 事件委派（只綁一次，比每個 li 各綁一個更高效）
+            listEl.onclick = (e) => {
+                const delBtn = e.target.closest('.del-btn');
+                if (delBtn) {
+                    e.stopPropagation();
+                    this.deleteItem(delBtn.dataset.id);
+                    return;
+                }
+                const li = e.target.closest('.schedule-item');
+                if (li) setMap(li.dataset.loc, li);
+            };
+
+            // 初始化地圖顯示第一項
+            const first = dayData.items[0];
+            setMap(first.loc || first.title, null);
+        }
+    },
+
+    // ── 刪除行程 ──
+    deleteItem(id) {
+        if (!confirm('確定要刪除這項行程嗎？')) return;
+        const day = this.schedule[this.currentDay - 1];
+        day.items = day.items.filter(item => item.id !== id);
+        this.save();
+        this.updateUI();
+        showToast('已刪除行程');
+    },
+
+    // ── 恢復預設 ──
+    restoreDefault() {
+        if (!confirm('確定恢復此天的原始行程嗎？')) return;
+        this.schedule[this.currentDay - 1].items =
+            JSON.parse(JSON.stringify(DEFAULT_SCHEDULE[this.currentDay - 1].items));
+        this.save();
+        this.updateUI();
+        showToast('✓ 已恢復原始行程');
+    },
+
+    // ── 新增自訂行程 ──
+    addCustomItem() {
+        const timeEl = document.getElementById('newTime');
+        const titleEl = document.getElementById('newTitle');
+        const title = titleEl.value.trim();
+        if (!title) { titleEl.focus(); return; }
+
+        this.schedule[this.currentDay - 1].items.push({
+            id: `custom_${Date.now()}`,
+            time: timeEl.value,
+            title,
+            isCustom: true,
+            icon: '⭐'
+        });
+        this.save();
+        titleEl.value = '';
+        this.toggleAddForm();
+        this.updateUI();
+        showToast('✓ 已新增行程');
+    },
+
+    // ── 切換天數 ──
+    changeDay(step) {
+        const next = this.currentDay + step;
+        if (next < 1 || next > TOTAL_DAYS) return;
+        this.currentDay = next;
+        this.save();
+        this.updateUI();
+    },
+
+    // ── 切換新增表單 ──
+    toggleAddForm() {
+        const form = document.getElementById('addForm');
+        const isOpen = form.style.display === 'block';
+        form.style.display = isOpen ? 'none' : 'block';
+        if (!isOpen) document.getElementById('newTitle').focus();
+    },
+
+    // ── 行李清單 ──
+    renderPacking() {
+        const container = document.getElementById('packingList');
+        const frag = document.createDocumentFragment();
+        PACKING_ITEMS.forEach(item => {
+            const done = !!this.packingStatus[item];
+            const div = document.createElement('div');
+            div.className = `packing-item${done ? ' done' : ''}`;
+            div.innerHTML = `
+                <div class="packing-check">${done ? '✓' : ''}</div>
+                <span class="packing-label">${escapeHtml(item)}</span>
+            `;
+            div.addEventListener('click', () => this.togglePackingItem(item, div));
+            frag.appendChild(div);
+        });
+        container.innerHTML = '';
+        container.appendChild(frag);
+    },
+
+    // ── 切換行李項目（局部更新，不重繪整個清單）──
+    togglePackingItem(item, el) {
+        this.packingStatus[item] = !this.packingStatus[item];
+        const done = this.packingStatus[item];
+        el.classList.toggle('done', done);
+        el.querySelector('.packing-check').textContent = done ? '✓' : '';
+        storageSet('packingStatus', this.packingStatus);
+    }
+};
+
+// ─────────────────────────────────────────
+//  初始化
+// ─────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>
