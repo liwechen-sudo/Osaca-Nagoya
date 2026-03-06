@@ -401,33 +401,39 @@ const DEFAULT_SCHEDULE = [
     { id: "d1_3", time: "12:40", icon: "🏨", title: "大阪龍仕柏飯店", sub: "飯店與 LUCUA 1100 商場連通，有無障礙電梯，推車友善", loc: "Hotel Hankyu RESPIRE OSAKA" },
     { id: "d1_4", time: "15:00", icon: "🌅", title: "梅田空中庭園", sub: "夜景行程", loc: "Umeda Sky Building" },  // ← 補逗號
     { id: "d1_5", time: "17:00", icon: "🏙", title: "大丸百貨梅田店 (13F)", sub: "寶可夢中心、Nintendo OSAKA、Tomica", loc: "大丸梅田店" },  // ← 補逗號
-    { id: "d1_6", time: "19:00", icon: "🏙", title: "Yodobashi", sub: "8 樓美食街，座位寬敞，不用擔心吵到他人", loc: "Yodobashi Umeda" }
+    { id: "d1_6", time: "19:00", icon: "🏬", title: "Yodobashi", sub: "8 樓美食街，座位寬敞，不用擔心吵到他人", loc: "Yodobashi Umeda" }
 ]},
     { date: "3月12日", city: "大阪", lat: 34.69, lon: 135.50, items: [
-        { id: "d2_1", time: "10:00", icon: "🐠", title: "海遊館", sub: "看鯨鯊", loc: "Osaka Kaiyukan Aquarium" },
-        { id: "d2_2", time: "12:30", icon: "🍱", title: "天保山購物中心", sub: "浪花美食橫丁", loc: "Tempozan Marketplace" }
+        { id: "d2_1", time: "10:00", icon: "🐠", title: "海遊館", sub: "票已預約，看鯨鯊", loc: "Osaka Kaiyukan Aquarium" },
+        { id: "d2_2", time: "12:30", icon: "🍱", title: "天保山購物中心", sub: "「浪花美食橫丁」非常有懷舊感，北極星蛋包飯是首選", loc: "Tempozan Marketplace" },
+        { id: "d2_3", time: "14:30", icon: "🎡", title: "帆船型觀光船或摩天輪", sub: "體力好選聖瑪麗亞號（看大船），想休息選摩天輪（在包廂內坐著看風景）", loc: "天保山大摩天輪" },
+        { id: "d2_4", time: "16:30", icon: "🏬", title: "Yodobashi", sub: "避開下班尖峰時間（ 17:30），早一點搭地鐵回梅田，5 樓是玩具戰區，5 歲孩子最愛的玩具、扭蛋都在這", loc: "Yodobashi Umeda" }, 
+        { id: "d2_5", time: "18:30", icon: "🥩", title: "神戸あぶり牧場 梅田本店", sub: "晚餐", loc: "神戸あぶり牧場 梅田本店" }
     ]},
     { date: "3月13日", city: "名古屋", lat: 35.18, lon: 136.90, items: [
-        { id: "d3_1", time: "09:30", icon: "🚄", title: "大阪 → 名古屋", sub: "搭乘新幹線移動", loc: "Nagoya Station" },
-        { id: "d3_2", time: "11:30", icon: "🏨", title: "飯店寄行李", sub: "名古屋站西側", loc: "Nagoya Station West Exit" },
-        { id: "d3_3", time: "12:45", icon: "🍱", title: "午餐時間", sub: "矢場豬排 或 棊子麵", loc: "矢場とん 名古屋駅" },
-        { id: "d3_4", time: "14:30", icon: "🛍️", title: "戰區：榮商圈", sub: "松坂屋寶可夢中心 / PARCO", loc: "Matsuzakaya Nagoya" },
-        { id: "d3_5", time: "17:00", icon: "🗼", title: "綠洲 21", sub: "久屋大通公園 / 電視塔點燈", loc: "Oasis 21" },
-        { id: "d3_6", time: "18:30", icon: "🍽️", title: "晚餐時間", sub: "名鐵鰻魚飯 或 風來坊雞翅", loc: "Meitetsu Department Store" },
-        { id: "d3_7", time: "20:30", icon: "🏪", title: "回飯店 / 補貨", sub: "B1 藥妝店或超商", loc: "Nagoya Station" }
+        { id: "d3_1", time: "09:45", icon: "🚄", title: "大阪 → 名古屋", sub: "新幹線往名古屋Nozomi 6（已訂票）成人 1: Car.15 Seat.13-A 成人 2: Car.15 Seat.13-B 兒童 1: Car.15 Seat.13-C", loc: "Nagoya Station" },
+        { id: "d3_2", time: "11:00", icon: "🏨", title: "飯店寄行李", sub: "Via Inn Nagoya Station Tsubakicho", loc: "Via Inn Nagoya Station Tsubakicho" },
+        { id: "d3_3", time: "11:30", icon: "🍱", title: "午餐時間", sub: "矢場豬排 或 棊子麵", loc: "矢場とん 名古屋駅" },
+        { id: "d3_4", time: "13:00", icon: "🌸", title: "高岳站：大寒櫻並木", sub: "這是名古屋最早開的櫻花，賭看看有沒有", loc: "高岳站" },
+        { id: "d3_5", time: "14:30", icon: "🏯", title: "名古屋城", sub: "名古屋城的御殿金碧輝煌，值得一拍。", loc: "名古屋城" },
+        { id: "d3_6", time: "16:30", icon: "🛒", title: "榮商圈 (Sakae)", sub: "松坂屋/PARCO", loc: "PARCO" },
+        { id: "d3_7", time: "18:30", icon: "🚀", title: "綠洲 21 點燈", sub: "久屋大通公園/電視塔點燈", loc: "綠洲 21 " }
     ]},
     { date: "3月14日", city: "名古屋", lat: 35.18, lon: 136.90, items: [
-        { id: "d4_1", time: "10:00", icon: "🌳", title: "吉卜力公園", sub: "宮崎駿世界", loc: "Ghibli Park" }
+        { id: "d4_1", time: "10:00", icon: "🌳", title: "吉卜力公園", sub: " 直衝「魔女之谷」，拍霍爾城堡、「もののけの里」休息吃糰子、 午餐（建議在公園入口處的 Lawson 買好飯糰或到外圍簡餐店，省下排隊時間）、14:00： 吉卜力大倉庫 ", loc: "Ghibli Park" }
     ]},
     { date: "3月15日", city: "名古屋", lat: 35.18, lon: 136.90, items: [
-        { id: "d5_1", time: "10:00", icon: "🚂", title: "磁浮鐵道館", sub: "新幹線展覽", loc: "SCMAGLEV and Railway Park" }
+        { id: "d5_1", time: "10:00", icon: "🚂", title: "磁浮鐵道館", sub: "火車迷的天堂，有模擬駕駛（需抽籤）和精緻的鐵道模型劇場", loc: "SCMAGLEV and Railway Park" },
+        { id: "d5_2", time: "13:30", icon: "⛩️", title: "熱田神宮", sub: "關東/關西以外最強神宮之一，午餐", loc: "熱田神宮" },
+        { id: "d5_3", time: "15:30", icon: "⛩️", title: "大須觀音/商店街", sub: "這裡像「名古屋的西門町」，有很多古著、美食小吃（鯛魚燒、炸雞），很適合隨意逛", loc: "大須觀音" }
     ]},
     { date: "3月16日", city: "名古屋", lat: 35.18, lon: 136.90, items: [
-        { id: "d6_1", time: "09:30", icon: "🤖", title: "樂高樂園", sub: "親子最後衝刺", loc: "LEGOLAND Japan" }
+        { id: "d6_1", time: "10:00", icon: "🤖", title: "樂高樂園", sub: "親子最後衝刺，15:00一定要離開", loc: "LEGOLAND Japan" },
+        { id: "d6_2", time: "17:00", icon: "🛫", title: "中部國際機場", sub: "用餐 準備搭機", loc: "中部國際機場" }
     ]}
 ];
 
-const PACKING_ITEMS = ["護照／簽證", "日幣現金／卡片", "小孩備用藥", "行動電源", "尿布／濕紙巾", "雨具／外套"];
+const PACKING_ITEMS = ["護照／簽證", "日幣現金／卡片", "小孩備用藥", "行動電源", "濕紙巾", "雨具／外套"];
 
 // ─────────────────────────────────────────
 //  工具函式
