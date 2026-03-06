@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>京阪名親子遊助手 V9</title>
+    <title>京阪名親子遊助手 V10</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -27,9 +27,7 @@
             --shadow-md: 0 4px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
             --transition: 0.18s ease;
         }
-
         * { box-sizing: border-box; }
-
         body {
             font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0;
@@ -38,7 +36,6 @@
             padding-bottom: 48px;
             -webkit-font-smoothing: antialiased;
         }
-
         /* ── Header ── */
         .header {
             background: linear-gradient(135deg, #1d4ed8 0%, #4f46e5 60%, #7c3aed 100%);
@@ -75,7 +72,6 @@
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.6; transform: scale(0.85); }
         }
-
         /* ── Cards ── */
         .card {
             background: var(--card-bg);
@@ -84,7 +80,6 @@
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-md);
         }
-
         h3 {
             margin: 0 0 16px;
             color: var(--primary);
@@ -96,7 +91,6 @@
             padding-bottom: 12px;
             border-bottom: 2px solid var(--border);
         }
-
         /* ── Map ── */
         .map-container {
             width: 100%;
@@ -113,10 +107,8 @@
             border: none;
             display: block;
         }
-
         /* ── Schedule List ── */
         .schedule-list { list-style: none; padding: 0; margin: 0; }
-
         .schedule-item {
             display: flex;
             align-items: flex-start;
@@ -143,7 +135,6 @@
             border-color: var(--accent);
             background: var(--accent-light);
         }
-
         .schedule-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 1px; }
         .schedule-time {
             font-size: 0.7rem;
@@ -157,7 +148,6 @@
         .schedule-body { flex: 1; min-width: 0; padding-right: 24px; }
         .schedule-title { font-size: 0.93rem; font-weight: 700; line-height: 1.3; }
         .schedule-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
-
         .del-btn {
             position: absolute;
             right: 8px; top: 50%;
@@ -176,7 +166,6 @@
         }
         .schedule-item:hover .del-btn { opacity: 0.7; }
         .del-btn:hover { opacity: 1 !important; background: var(--danger-light); }
-
         /* ── Manage form ── */
         .manage-toggle {
             width: 100%;
@@ -188,10 +177,10 @@
             border: 2px dashed var(--border);
             border-radius: var(--radius-md);
             font-weight: 600;
+            cursor: pointer;
             transition: background var(--transition), border-color var(--transition);
         }
         .manage-toggle:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
-
         .add-form {
             display: none;
             margin-top: 14px;
@@ -214,7 +203,6 @@
             outline: none;
         }
         .add-form input:focus { border-color: var(--primary); }
-
         .btn-add {
             width: 100%;
             padding: 11px;
@@ -242,7 +230,6 @@
             transition: background var(--transition);
         }
         .btn-restore:hover { background: var(--danger-light); }
-
         /* ── Nav ── */
         .nav-btns {
             display: grid;
@@ -263,7 +250,6 @@
         .btn-nav.prev { background: #f1f5f9; color: var(--text-muted); }
         .btn-nav.next { background: var(--primary); color: white; }
         .btn-nav:disabled { opacity: 0.35; cursor: default; }
-
         /* ── Day progress indicator ── */
         .day-dots {
             display: flex;
@@ -278,7 +264,6 @@
             transition: background var(--transition), transform var(--transition);
         }
         .day-dot.active { background: white; transform: scale(1.3); }
-
         /* ── Packing list ── */
         .packing-item {
             display: flex;
@@ -291,7 +276,6 @@
         }
         .packing-item:last-child { border-bottom: none; }
         .packing-item:active { opacity: 0.7; }
-
         .packing-check {
             width: 22px; height: 22px;
             border-radius: 6px;
@@ -315,7 +299,6 @@
             color: var(--text-muted);
             text-decoration: line-through;
         }
-
         /* ── Empty state ── */
         .empty-state {
             text-align: center;
@@ -324,7 +307,6 @@
             font-size: 0.88rem;
         }
         .empty-state .icon { font-size: 2rem; margin-bottom: 8px; }
-
         /* ── Toast ── */
         .toast {
             position: fixed;
@@ -346,7 +328,6 @@
     </style>
 </head>
 <body>
-
 <div class="header">
     <h2 id="dayDisplay">Day 1</h2>
     <div id="dateDisplay" class="header-date">3月11日</div>
@@ -356,38 +337,41 @@
     </div>
     <div class="day-dots" id="dayDots"></div>
 </div>
-
 <div class="card">
     <div class="map-container">
         <iframe id="mapFrame" title="地圖" loading="lazy"></iframe>
     </div>
-
     <ul id="scheduleList" class="schedule-list"></ul>
-
     <button class="manage-toggle" id="toggleBtn" onclick="App.toggleAddForm()">＋ 管理行程（新增 / 重置）</button>
-
     <div id="addForm" class="add-form">
         <label>新增自訂景點</label>
         <input id="newTime" type="time" value="12:00">
         <input id="newTitle" placeholder="景點或餐廳名稱" maxlength="40">
+        <!-- 修正 #7：新增地點欄位，改善地圖搜尋準確度 -->
+        <input id="newLoc" placeholder="地點（英文，選填，用於地圖搜尋）" maxlength="80">
         <button class="btn-add" onclick="App.addCustomItem()">✓ 確定新增</button>
         <button class="btn-restore" onclick="App.restoreDefault()">↺ 恢復當日原始預設行程</button>
     </div>
-
     <div class="nav-btns">
         <button class="btn-nav prev" id="prevBtn" onclick="App.changeDay(-1)">← 上一天</button>
         <button class="btn-nav next" id="nextBtn" onclick="App.changeDay(1)">下一天 →</button>
     </div>
 </div>
-
 <div class="card">
     <h3>🧳 必備物資確認</h3>
     <div id="packingList"></div>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script>
+// ─────────────────────────────────────────
+//  修正 #4：localStorage 版本控制
+//  更改 SCHEMA_VERSION 可自動清除舊快取
+// ─────────────────────────────────────────
+const SCHEMA_VERSION = 1;
+const STORAGE_KEY_SCHEDULE = `activeSchedule_v${SCHEMA_VERSION}`;
+const STORAGE_KEY_DAY      = `lastDay_v${SCHEMA_VERSION}`;
+const STORAGE_KEY_PACKING  = `packingStatus_v${SCHEMA_VERSION}`;
+
 // ─────────────────────────────────────────
 //  資料層（純資料，與 UI 完全分離）
 // ─────────────────────────────────────────
@@ -395,42 +379,60 @@ const TRIP_START = new Date("2026-03-11T00:00:00");
 const TOTAL_DAYS = 6;
 
 const DEFAULT_SCHEDULE = [
-    { date: "3月11日", city: "大阪", lat: 34.69, lon: 135.50, items: [
-    { id: "d1_1", time: "06:55", icon: "✈️", title: "虎航 IT284", sub: "高雄→關西 KIX", loc: "Kansai International Airport" },
-    { id: "d1_2", time: "11:30", icon: "💺", title: "關西機場", sub: "搭乘 機場利木津巴士", loc: "Kansai International Airport" },  // ← 補逗號
-    { id: "d1_3", time: "12:40", icon: "🏨", title: "大阪龍仕柏飯店", sub: "飯店與 LUCUA 1100 商場連通，有無障礙電梯，推車友善", loc: "Hotel Hankyu RESPIRE OSAKA" },
-    { id: "d1_4", time: "15:00", icon: "🌅", title: "梅田空中庭園", sub: "夜景行程", loc: "Umeda Sky Building" },  // ← 補逗號
-    { id: "d1_5", time: "17:00", icon: "🏙", title: "大丸百貨梅田店 (13F)", sub: "寶可夢中心、Nintendo OSAKA、Tomica", loc: "大丸梅田店" },  // ← 補逗號
-    { id: "d1_6", time: "19:00", icon: "🏬", title: "Yodobashi", sub: "8 樓美食街，座位寬敞，不用擔心吵到他人", loc: "Yodobashi Umeda" }
-]},
-    { date: "3月12日", city: "大阪", lat: 34.69, lon: 135.50, items: [
-        { id: "d2_1", time: "10:00", icon: "🐠", title: "海遊館", sub: "票已預約，看鯨鯊", loc: "Osaka Kaiyukan Aquarium" },
-        { id: "d2_2", time: "12:30", icon: "🍱", title: "天保山購物中心", sub: "「浪花美食橫丁」非常有懷舊感，北極星蛋包飯是首選", loc: "Tempozan Marketplace" },
-        { id: "d2_3", time: "14:30", icon: "🎡", title: "帆船型觀光船或摩天輪", sub: "體力好選聖瑪麗亞號（看大船），想休息選摩天輪（在包廂內坐著看風景）", loc: "天保山大摩天輪" },
-        { id: "d2_4", time: "16:30", icon: "🏬", title: "Yodobashi", sub: "避開下班尖峰時間（ 17:30），早一點搭地鐵回梅田，5 樓是玩具戰區，5 歲孩子最愛的玩具、扭蛋都在這", loc: "Yodobashi Umeda" }, 
-        { id: "d2_5", time: "18:30", icon: "🥩", title: "神戸あぶり牧場 梅田本店", sub: "晚餐", loc: "神戸あぶり牧場 梅田本店" }
-    ]},
-    { date: "3月13日", city: "名古屋", lat: 35.18, lon: 136.90, items: [
-        { id: "d3_1", time: "09:45", icon: "🚄", title: "大阪 → 名古屋", sub: "新幹線往名古屋Nozomi 6（已訂票）成人 1: Car.15 Seat.13-A 成人 2: Car.15 Seat.13-B 兒童 1: Car.15 Seat.13-C", loc: "Nagoya Station" },
-        { id: "d3_2", time: "11:00", icon: "🏨", title: "飯店寄行李", sub: "Via Inn Nagoya Station Tsubakicho", loc: "Via Inn Nagoya Station Tsubakicho" },
-        { id: "d3_3", time: "11:30", icon: "🍱", title: "午餐時間", sub: "矢場豬排 或 棊子麵", loc: "矢場とん 名古屋駅" },
-        { id: "d3_4", time: "13:00", icon: "🌸", title: "高岳站：大寒櫻並木", sub: "這是名古屋最早開的櫻花，賭看看有沒有", loc: "高岳站" },
-        { id: "d3_5", time: "14:30", icon: "🏯", title: "名古屋城", sub: "名古屋城的御殿金碧輝煌，值得一拍。", loc: "名古屋城" },
-        { id: "d3_6", time: "16:30", icon: "🛒", title: "榮商圈 (Sakae)", sub: "松坂屋/PARCO", loc: "PARCO" },
-        { id: "d3_7", time: "18:30", icon: "🚀", title: "綠洲 21 點燈", sub: "久屋大通公園/電視塔點燈", loc: "綠洲 21 " }
-    ]},
-    { date: "3月14日", city: "名古屋", lat: 35.18, lon: 136.90, items: [
-        { id: "d4_1", time: "10:00", icon: "🌳", title: "吉卜力公園", sub: " 直衝「魔女之谷」，拍霍爾城堡、「もののけの里」休息吃糰子、 午餐（建議在公園入口處的 Lawson 買好飯糰或到外圍簡餐店，省下排隊時間）、14:00： 吉卜力大倉庫 ", loc: "Ghibli Park" }
-    ]},
-    { date: "3月15日", city: "名古屋", lat: 35.18, lon: 136.90, items: [
-        { id: "d5_1", time: "10:00", icon: "🚂", title: "磁浮鐵道館", sub: "火車迷的天堂，有模擬駕駛（需抽籤）和精緻的鐵道模型劇場", loc: "SCMAGLEV and Railway Park" },
-        { id: "d5_2", time: "13:30", icon: "⛩️", title: "熱田神宮", sub: "關東/關西以外最強神宮之一，午餐", loc: "熱田神宮" },
-        { id: "d5_3", time: "15:30", icon: "⛩️", title: "大須觀音/商店街", sub: "這裡像「名古屋的西門町」，有很多古著、美食小吃（鯛魚燒、炸雞），很適合隨意逛", loc: "大須觀音" }
-    ]},
-    { date: "3月16日", city: "名古屋", lat: 35.18, lon: 136.90, items: [
-        { id: "d6_1", time: "10:00", icon: "🤖", title: "樂高樂園", sub: "親子最後衝刺，15:00一定要離開", loc: "LEGOLAND Japan" },
-        { id: "d6_2", time: "17:00", icon: "🛫", title: "中部國際機場", sub: "用餐 準備搭機", loc: "中部國際機場" }
-    ]}
+    {
+        date: "3月11日", city: "大阪", lat: 34.69, lon: 135.50,
+        items: [
+            { id: "d1_1", time: "06:55", icon: "✈️", title: "虎航 IT284",        sub: "高雄→關西 KIX",                                                              loc: "Kansai International Airport" },
+            { id: "d1_2", time: "11:30", icon: "💺", title: "關西機場",           sub: "搭乘機場利木津巴士",                                                         loc: "Kansai International Airport" },
+            { id: "d1_3", time: "12:40", icon: "🏨", title: "大阪龍仕柏飯店",     sub: "飯店與 LUCUA 1100 商場連通，有無障礙電梯，推車友善",                         loc: "Hotel Hankyu RESPIRE OSAKA" },
+            { id: "d1_4", time: "15:00", icon: "🌅", title: "梅田空中庭園",       sub: "夜景行程",                                                                   loc: "Umeda Sky Building" },
+            { id: "d1_5", time: "17:00", icon: "🏙", title: "大丸百貨梅田店 (13F)", sub: "寶可夢中心、Nintendo OSAKA、Tomica",                                      loc: "Daimaru Umeda" },
+            { id: "d1_6", time: "19:00", icon: "🏬", title: "Yodobashi",          sub: "8 樓美食街，座位寬敞，不用擔心吵到他人",                                     loc: "Yodobashi Umeda" }
+        ]
+    },
+    {
+        date: "3月12日", city: "大阪", lat: 34.69, lon: 135.50,
+        items: [
+            { id: "d2_1", time: "10:00", icon: "🐠", title: "海遊館",              sub: "票已預約，看鯨鯊",                                                          loc: "Osaka Kaiyukan Aquarium" },
+            { id: "d2_2", time: "12:30", icon: "🍱", title: "天保山購物中心",      sub: "「浪花美食橫丁」非常有懷舊感，北極星蛋包飯是首選",                           loc: "Tempozan Marketplace" },
+            { id: "d2_3", time: "14:30", icon: "🎡", title: "帆船型觀光船或摩天輪", sub: "體力好選聖瑪麗亞號（看大船），想休息選摩天輪（在包廂內坐著看風景）",         loc: "Tempozan Giant Ferris Wheel" },
+            { id: "d2_4", time: "16:30", icon: "🏬", title: "Yodobashi",           sub: "避開下班尖峰時間（17:30），早一點搭地鐵回梅田，5 樓是玩具戰區",              loc: "Yodobashi Umeda" },
+            { id: "d2_5", time: "18:30", icon: "🥩", title: "神戸あぶり牧場 梅田本店", sub: "晚餐",                                                                loc: "神戸あぶり牧場 梅田本店" }
+        ]
+    },
+    {
+        date: "3月13日", city: "名古屋", lat: 35.18, lon: 136.90,
+        items: [
+            { id: "d3_1", time: "09:45", icon: "🚄", title: "大阪 → 名古屋",      sub: "新幹線 Nozomi 6（已訂票）｜成人1: Car.15 13-A ／成人2: Car.15 13-B ／兒童: Car.15 13-C", loc: "Nagoya Station" },
+            { id: "d3_2", time: "11:00", icon: "🏨", title: "飯店寄行李",          sub: "Via Inn Nagoya Station Tsubakicho",                                          loc: "Via Inn Nagoya Station Tsubakicho" },
+            { id: "d3_3", time: "11:30", icon: "🍱", title: "午餐時間",             sub: "矢場豬排 或 棊子麵",                                                        loc: "Yabaton Nagoya Station" },
+            { id: "d3_4", time: "13:00", icon: "🌸", title: "高岳站：大寒櫻並木",  sub: "名古屋最早開的櫻花，賭看看有沒有",                                           loc: "Takaoka Station Nagoya" },
+            { id: "d3_5", time: "14:30", icon: "🏯", title: "名古屋城",             sub: "名古屋城的御殿金碧輝煌，值得一拍",                                          loc: "Nagoya Castle" },
+            { id: "d3_6", time: "16:30", icon: "🛒", title: "榮商圈 (Sakae)",       sub: "松坂屋/PARCO",                                                             loc: "Sakae Nagoya PARCO" },
+            { id: "d3_7", time: "18:30", icon: "🚀", title: "綠洲 21 點燈",        sub: "久屋大通公園/電視塔點燈",                                                   loc: "Oasis 21 Nagoya" }
+        ]
+    },
+    {
+        date: "3月14日", city: "名古屋", lat: 35.18, lon: 136.90,
+        items: [
+            { id: "d4_1", time: "10:00", icon: "🌳", title: "吉卜力公園",          sub: "直衝「魔女之谷」，拍霍爾城堡 → 「もののけの里」休息吃糰子 → 午餐（入口 Lawson 買好飯糰）→ 14:00 吉卜力大倉庫", loc: "Ghibli Park" }
+        ]
+    },
+    {
+        date: "3月15日", city: "名古屋", lat: 35.18, lon: 136.90,
+        items: [
+            { id: "d5_1", time: "10:00", icon: "🚂", title: "磁浮鐵道館",          sub: "火車迷的天堂，有模擬駕駛（需抽籤）和精緻的鐵道模型劇場",                     loc: "SCMAGLEV and Railway Park Nagoya" },
+            { id: "d5_2", time: "13:30", icon: "⛩️", title: "熱田神宮",            sub: "關東/關西以外最強神宮之一，午餐",                                           loc: "Atsuta Shrine Nagoya" },
+            { id: "d5_3", time: "15:30", icon: "🛍️", title: "大須觀音/商店街",    sub: "像「名古屋的西門町」，有很多古著、美食小吃（鯛魚燒、炸雞），很適合隨意逛",  loc: "Osu Kannon Nagoya" }
+        ]
+    },
+    {
+        date: "3月16日", city: "名古屋", lat: 35.18, lon: 136.90,
+        items: [
+            { id: "d6_1", time: "10:00", icon: "🤖", title: "樂高樂園",            sub: "親子最後衝刺，15:00 一定要離開",                                            loc: "LEGOLAND Japan Nagoya" },
+            { id: "d6_2", time: "17:00", icon: "🛫", title: "中部國際機場",        sub: "用餐，準備搭機",                                                            loc: "Chubu Centrair International Airport" }
+        ]
+    }
 ];
 
 const PACKING_ITEMS = ["護照／簽證", "日幣現金／卡片", "小孩備用藥", "行動電源", "濕紙巾", "雨具／外套"];
@@ -443,7 +445,6 @@ function escapeHtml(str) {
     div.textContent = String(str);
     return div.innerHTML;
 }
-
 function storageGet(key, fallback = null) {
     try {
         const v = localStorage.getItem(key);
@@ -453,7 +454,6 @@ function storageGet(key, fallback = null) {
 function storageSet(key, value) {
     try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
 }
-
 let toastTimer = null;
 function showToast(msg) {
     const el = document.getElementById('toast');
@@ -464,31 +464,40 @@ function showToast(msg) {
 }
 
 // ─────────────────────────────────────────
-//  天氣快取（避免重複 API 呼叫）
+//  天氣快取（修正 #6：使用 sessionStorage 快取 5 分鐘）
 // ─────────────────────────────────────────
-const weatherCache = {};
 const WEATHER_LABEL = { 0:"☀️ 晴朗", 1:"🌤️ 晴多雲", 2:"⛅ 多雲", 3:"☁️ 陰天", 61:"🌧️ 小雨", 63:"🌧️ 中雨", 80:"🌦️ 陣雨" };
+const WEATHER_TTL_MS = 5 * 60 * 1000; // 5 分鐘
 
 async function fetchWeather(lat, lon, city) {
-    const key = `${lat},${lon}`;
+    const cacheKey = `weather_${lat}_${lon}`;
     const display = document.getElementById('weatherDisplay');
 
-    if (weatherCache[key]) {
-        renderWeather(display, weatherCache[key], city);
-        return;
-    }
+    // 嘗試讀 sessionStorage 快取
+    try {
+        const cached = JSON.parse(sessionStorage.getItem(cacheKey));
+        if (cached && Date.now() - cached.ts < WEATHER_TTL_MS) {
+            renderWeather(display, cached.data, city);
+            return;
+        }
+    } catch {}
+
     try {
         const res = await fetch(
             `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=Asia%2FTokyo`
         );
         if (!res.ok) throw new Error('Network error');
         const data = await res.json();
-        weatherCache[key] = data.current_weather;
+        // 存入 sessionStorage
+        try {
+            sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data: data.current_weather }));
+        } catch {}
         renderWeather(display, data.current_weather, city);
     } catch {
         display.innerHTML = `<span class="weather-dot" style="background:#f87171"></span><span>天氣暫時無法取得</span>`;
     }
 }
+
 function renderWeather(el, w, city) {
     const temp = Math.round(w.temperature);
     const label = WEATHER_LABEL[w.weathercode] ?? "🌤️ 良好";
@@ -503,7 +512,6 @@ function setMap(location, activeEl) {
     // 更新 active 樣式
     document.querySelectorAll('.schedule-item').forEach(el => el.classList.remove('active'));
     if (activeEl) activeEl.classList.add('active');
-
     clearTimeout(mapDebounce);
     mapDebounce = setTimeout(() => {
         document.getElementById('mapFrame').src =
@@ -516,25 +524,24 @@ function setMap(location, activeEl) {
 // ─────────────────────────────────────────
 const App = {
     currentDay: 1,
-    schedule: storageGet('activeSchedule', JSON.parse(JSON.stringify(DEFAULT_SCHEDULE))),
-    packingStatus: storageGet('packingStatus', {}),
+    // 修正 #4：使用帶版本號的 key 讀取 localStorage
+    schedule: storageGet(STORAGE_KEY_SCHEDULE, JSON.parse(JSON.stringify(DEFAULT_SCHEDULE))),
+    packingStatus: storageGet(STORAGE_KEY_PACKING, {}),
 
     init() {
-        this.currentDay = storageGet('lastDay', this._calcTodayDay());
+        this.currentDay = storageGet(STORAGE_KEY_DAY, this._calcTodayDay());
         this.renderDots();
         this.updateUI();
         this.renderPacking();
     },
-
     _calcTodayDay() {
         const diff = Date.now() - TRIP_START.getTime();
         const day = Math.floor(diff / 86400000) + 1;
         return (day >= 1 && day <= TOTAL_DAYS) ? day : 1;
     },
-
     save() {
-        storageSet('activeSchedule', this.schedule);
-        storageSet('lastDay', this.currentDay);
+        storageSet(STORAGE_KEY_SCHEDULE, this.schedule);
+        storageSet(STORAGE_KEY_DAY, this.currentDay);
     },
 
     // ── 渲染日期進度圓點 ──
@@ -548,7 +555,6 @@ const App = {
     // ── 主畫面更新 ──
     updateUI() {
         const dayData = this.schedule[this.currentDay - 1];
-
         document.getElementById('dayDisplay').textContent = `第 ${this.currentDay} 天`;
         document.getElementById('dateDisplay').textContent = dayData.date;
 
@@ -573,14 +579,12 @@ const App = {
             listEl.innerHTML = `<div class="empty-state"><div class="icon">📭</div>今天還沒有行程<br>點下方按鈕新增吧！</div>`;
             document.getElementById('mapFrame').src = '';
         } else {
-            // 使用 DocumentFragment 批次 DOM 操作，避免多次 reflow
             const frag = document.createDocumentFragment();
             dayData.items.forEach((item, idx) => {
                 const li = document.createElement('li');
                 li.className = `schedule-item${item.isCustom ? ' custom' : ''}`;
                 li.dataset.loc = item.loc || item.title;
                 li.dataset.id = item.id;
-
                 li.innerHTML = `
                     <span class="schedule-icon">${escapeHtml(item.icon || '📍')}</span>
                     <div class="schedule-time">${escapeHtml(item.time)}</div>
@@ -591,14 +595,16 @@ const App = {
                     <button class="del-btn" data-id="${escapeHtml(item.id)}" aria-label="刪除">✕</button>
                 `;
                 frag.appendChild(li);
-
-                // 預設選中第一項
-                if (idx === 0) li.classList.add('active');
             });
             listEl.innerHTML = '';
             listEl.appendChild(frag);
 
-            // 事件委派（只綁一次，比每個 li 各綁一個更高效）
+            // 修正 #2：正確取得第一個 DOM 元素並傳入 setMap，確保 active 樣式正確套用
+            const firstEl = listEl.querySelector('.schedule-item');
+            const first = dayData.items[0];
+            setMap(first.loc || first.title, firstEl);
+
+            // 事件委派（只綁一次，高效）
             listEl.onclick = (e) => {
                 const delBtn = e.target.closest('.del-btn');
                 if (delBtn) {
@@ -609,10 +615,6 @@ const App = {
                 const li = e.target.closest('.schedule-item');
                 if (li) setMap(li.dataset.loc, li);
             };
-
-            // 初始化地圖顯示第一項
-            const first = dayData.items[0];
-            setMap(first.loc || first.title, null);
         }
     },
 
@@ -636,33 +638,40 @@ const App = {
         showToast('✓ 已恢復原始行程');
     },
 
-    // ── 新增自訂行程 ──
+    // ── 新增自訂行程（修正 #7：支援地點欄位） ──
     addCustomItem() {
-        const timeEl = document.getElementById('newTime');
+        const timeEl  = document.getElementById('newTime');
         const titleEl = document.getElementById('newTitle');
+        const locEl   = document.getElementById('newLoc');
         const title = titleEl.value.trim();
         if (!title) { titleEl.focus(); return; }
-
+        const loc = locEl.value.trim() || title;   // fallback 到 title，但鼓勵填英文
         this.schedule[this.currentDay - 1].items.push({
             id: `custom_${Date.now()}`,
             time: timeEl.value,
             title,
+            sub: '',
+            loc,
             isCustom: true,
             icon: '⭐'
         });
         this.save();
         titleEl.value = '';
+        locEl.value = '';
         this.toggleAddForm();
         this.updateUI();
         showToast('✓ 已新增行程');
     },
 
-    // ── 切換天數 ──
+    // ── 切換天數（修正 #5：切換時關閉新增表單） ──
     changeDay(step) {
         const next = this.currentDay + step;
         if (next < 1 || next > TOTAL_DAYS) return;
         this.currentDay = next;
+        // 修正 #5：切換天數時自動關閉表單
+        document.getElementById('addForm').style.display = 'none';
         this.save();
+        this.renderDots();
         this.updateUI();
     },
 
@@ -693,13 +702,13 @@ const App = {
         container.appendChild(frag);
     },
 
-    // ── 切換行李項目（局部更新，不重繪整個清單）──
+    // ── 切換行李項目（局部更新，不重繪整個清單） ──
     togglePackingItem(item, el) {
         this.packingStatus[item] = !this.packingStatus[item];
         const done = this.packingStatus[item];
         el.classList.toggle('done', done);
         el.querySelector('.packing-check').textContent = done ? '✓' : '';
-        storageSet('packingStatus', this.packingStatus);
+        storageSet(STORAGE_KEY_PACKING, this.packingStatus);
     }
 };
 
